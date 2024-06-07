@@ -4,12 +4,12 @@ import json
 import typing
 import random
 import tiktoken
-import re
 from tqdm import tqdm
 from pprint import pprint
-from unigen.utils import attribute
-from utils import embedding, data_format, file_process, wiki_eval, math_eval, self_reflection
+from utils import attribute,embedding, data_format, RAG_eval, math_eval, self_reflection
+from utils.configuration import ConfigManager
 from utils.IO import print, input
+from utils.file_process import save_json,load_json,check_and_rename_file
 from joblib import Parallel, delayed
 from threading import Thread
 from queue import Queue
@@ -19,9 +19,7 @@ from dataclasses import dataclass, field
 from simple_parsing import ArgumentParser
 import concurrent.futures
 from threading import Thread
-import time
 from datetime import datetime
-from utils.config import ConfigManager
 from tenacity import retry, wait_random_exponential, stop_after_attempt
 
 # import debugpy
@@ -59,7 +57,7 @@ class DyGenset:
                  **kwargs):
 
         config['generation_settings'] = ConfigManager.get_config_dict()
-        dataset_config = file_process.load_json(f"test_dataset/{dataset_name}/config.json")
+        dataset_config = load_json(f"test_dataset/{dataset_name}/config.json")
         pprint(dataset_config)
 
         dataset_description = dataset_config['dataset_configuration']['dataset_description']
@@ -134,10 +132,10 @@ class DyGenset:
             if not os.path.exists(embedding_path.format(self.dataset_name)):
                 embeddings = embedding.generate_dataset_embedding(data, self.embedding_model)
 
-                file_process.save_json(embeddings, embedding_path.format(self.dataset_name))
+                save_json(embeddings, embedding_path.format(self.dataset_name))
 
             else:
-                embeddings = file_process.load_json(embedding_path.format(self.dataset_name))
+                embeddings = load_json(embedding_path.format(self.dataset_name))
 
             examples = embedding.cluster_embeddings(data, embeddings, num_clusters=self.few_shot_num)
 
@@ -152,14 +150,7 @@ class DyGenset:
         return filtered_example
 
     def few_shot_description(self, examples):
-        # 确保输入是预期格式
-        # if self.with_label:
-        #     assert isinstance(examples[0], dict), "Examples must be a list of dictionaries."
-        #     assert len(examples[0]) == 2 and "text" in examples[0] and "label" in examples[
-        #         0], "Each dictionary must contain 'text' and 'label' keys."
-
         random.shuffle(examples)
-
         json_output = json.dumps(examples, indent=4)
         return json_output
 
@@ -168,7 +159,7 @@ class DyGenset:
         # 将JSON数据保存到文件
         json_data = examples
         file_path = f'{self.dataset_name}_{batch}.json'  # 指定文件名和路径
-        file_process.save_json(examples, file_path)
+        save_json(examples, file_path)
         print("JSON data has been saved to", file_path)
 
     def load_few_shot(self, batch):
@@ -176,7 +167,7 @@ class DyGenset:
         # 将JSON数据保存到文件
         # json_data=examples
         file_path = f'{self.dataset_name}_{batch}.json'  # 指定文件名和路径
-        examples = file_process.load_json(file_path)
+        examples = load_json(file_path)
         print(f'{self.dataset_name}_{batch}.json')
         return examples
 
@@ -185,17 +176,8 @@ class DyGenset:
 
         for i, constraint in enumerate(constraints, 1):
             constraints_text += f"{i}. {constraint}\n"
-
         constraints_text += self.prompt_template["constraints_suffix"]
-
         return constraints_text
-
-    # def add_constraints(self, constraints):
-    #     for i, constraint_dict in enumerate(constraints, 1):
-    #         for key, value in constraint_dict.items():
-    #             constraints_text += f"{i}. {key}: {value}\n"
-    #     constraints_text += self.prompt_template["constraints_suffix"]
-    #     return constraints_text
 
     def learn_from_human_feedback(self, examples):
         for example in examples:
@@ -210,7 +192,6 @@ class DyGenset:
         return feedback_string
 
     def _collect_user_feedback(self, example):
-
         if DEBUG:
             feedback = 'good'
             example['feedback'] = feedback
@@ -224,7 +205,6 @@ class DyGenset:
             print(f"Example: Text: {example['text']}")
             print("-------------------------------------------------------------------------", "green")
             feedback = input("Please provide your feedback: ", "red")
-
         example['feedback'] = feedback
 
     def count_tokens(self, text):
@@ -249,7 +229,7 @@ class DyGenset:
 
     def run(self, dataset_path, generated_data_file_path):
         assert self.generation_number % self.batch_size == 0, "generation_number must be divisible by batch_size"
-        dataset_config = file_process.load_json(f"test_dataset/{self.dataset_name}/config.json")
+        dataset_config = load_json(f"test_dataset/{self.dataset_name}/config.json")
         generated_dataset = list()
         # load base dataset
         base_data = self.preprocess_input(dataset_path)
@@ -269,9 +249,6 @@ class DyGenset:
             description_prompt = self.prompt_template["description_prompt"].format(
                 description_for_dataset=self.dataset_description, )
 
-            # response = get_res.api_send("""Please paraphase the following passage while perserving the meaning,(json format:{"paraphased":""}):\n\n"""+description_prompt, "gpt4-1106-preview",json_format=True)
-            # data = json.loads(response)
-            # description_prompt = data.get("paraphased", "Unknown")
 
             initial_prompt = self.prompt_template["initial_prompt"].format(batch_size=self.batch_size,
                                                                            dataset_constraint=constraint_des,
@@ -284,10 +261,8 @@ class DyGenset:
                                                             attr_key=self.attr_key)
             assert dataset_config["efficiency_configuration"]["feedback_iteration"] > 0
             for iter in range(0, dataset_config["efficiency_configuration"]["feedback_iteration"]):
-
                 res_data = data_format.get_res_data(initial_prompt)
                 data_item = data_format.extract_data_item(res_data)
-
                 feedback = self.learn_from_human_feedback(data_item)
                 if iter == 0:
                     feedback = self.prompt_template["feedback_prefix"] + feedback
@@ -365,7 +340,7 @@ class DyGenset:
                             else:
                                 batch_data[batch_data.index(item)] = truthfulness_eval_res
 
-                file_process.save_json(batch_data,
+                save_json(batch_data,
                                        f'/media/ssd/wtm/DyGenset/test_dataset/TruthfulQA/temper_case/{batch_id}_{self.temperature}.json')
                 queue.put(batch_data)
                 return batch_data
@@ -383,9 +358,7 @@ class DyGenset:
             """
             try:
                 current_time = datetime.now()
-
                 human_readable_time = current_time.strftime("%Y-%m-%d %H:%M:%S")
-
                 config = ConfigManager.get_config_dict()
                 config['data_entry_num'] = len(generated_dataset)
                 filtered_dataset = list(filter(lambda item: item['isgood'], generated_dataset))
@@ -408,7 +381,7 @@ class DyGenset:
         def save_data_to_file(queue):
             print(f"Data save path:{generated_data_file_path}\n\n\n\n\n")
             while True:
-                data = queue.get()  # 阻塞直到从队列获取到数据
+                data = queue.get() 
                 if data == "DONE":
                     break
                 all_data.extend(data)
@@ -422,7 +395,6 @@ class DyGenset:
         # 并行生成数据
         with concurrent.futures.ThreadPoolExecutor(max_workers=self.max_worker) as executor:
             futures = [executor.submit(batch_generation, batch_id=i, queue=data_queue) for i in range(total_batches)]
-            # 等待所有生成任务完成
         data_queue.put("DONE")
         save_thread.join()
 
@@ -452,9 +424,6 @@ def merge_configs(file_config: dict, cmd_config: CommandLineConfig) -> dict:
     return file_config
 
 
-# def load_config(file_path: str) -> dict:
-#     with open(file_path, 'r') as f:
-#         return json.load(f)
 
 
 def main(config):
@@ -463,12 +432,9 @@ def main(config):
     few_shot_num = config['few_shot_num']
     model_type = config['model_type']
     temperature = config['temperature']
-    # random_example= dataset_name == "TruthfulQA"
-
-    ##example_file
+    
     data_file_path = f"test_dataset/{dataset_name}/{dataset_name}.json"
-    ##save_file
-    generated_data_file_path = file_process.check_and_rename_file(
+    generated_data_file_path = check_and_rename_file(
         f"test_dataset/{dataset_name}/{dataset_name}_{model_type}_generated.json")
 
     print(f'generation_number：{generation_number}')
@@ -486,7 +452,6 @@ if __name__ == '__main__':
     final_config = merge_configs(file_config, cmd_config)
     pprint(final_config)
     ConfigManager.set_config_dict(final_config)
-    # config=ConfigManager.get_config_dict()
     main(final_config)
 
 
