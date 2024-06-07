@@ -1,24 +1,14 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-import os,sys
-this_dir = os.path.dirname(os.path.realpath(__file__))
-sys.path.append(os.path.dirname(this_dir))
-
 from . import data_format
 from .data_format import prompt_format
 from .IO import print,input
 import json
-import threading
 import copy
 from queue import Queue
 from concurrent.futures import ThreadPoolExecutor
 from tenacity import retry, wait_random_exponential, stop_after_attempt
-
-from utils.config import ConfigManager
-
-config=ConfigManager.get_config_dict()
-prompt_template=config["prompt"]
-
+from .prompt import prompt_template
 
 
 

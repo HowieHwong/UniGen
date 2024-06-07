@@ -3,7 +3,7 @@ from tenacity import retry, wait_random_exponential, stop_after_attempt
 from openai import OpenAI,AzureOpenAI
 from  anthropic import Anthropic
 import traceback
-from .config import ConfigManager
+from .configuration import ConfigManager
 config=ConfigManager.get_config_dict()
 
 
@@ -20,10 +20,13 @@ class ModelAPI:
         temperature=self.temperature
         try:
             if self.model_type.lower() == 'gpt':
+                self.api_key = config['api_settings']['openai_api']
                 return self.api_send_gpt4(text, model, message, azure, json_format, temperature)
             elif self.model_type.lower() == 'claude':
+                self.api_key = config['api_settings']['claude_api']
                 return self.api_send_claude(text, model, message, json_format, temperature)
             elif self.model_type.lower() == 'llama3':
+                self.api_key = config['api_settings']['deepinfra_api']
                 return self.api_send_llama3(text, model, message, json_format, temperature)
             else:
                 raise ValueError(f"Unsupported model type: {self.model_type}")
@@ -31,12 +34,11 @@ class ModelAPI:
             print(traceback.format_exc())
     
     def api_send_llama3(self,string, model=None, message=None, json_format=False,temperature=0.8):
-        client = OpenAI(api_key=api_key,
+        client = OpenAI(api_key=self.api_key,
                             base_url="https://api.deepinfra.com/v1/openai",
                             )
         top_p=1 if temperature<=1e-5 else 0.9
         temperature=0.01 if temperature<=1e-5 else temperature
-        max_tokens=
         model='meta-llama/Meta-Llama-3-70B-Instruct'
         print(f"Sending API request...{model}")
         chat_completion= client.chat.completions.create(
@@ -44,15 +46,16 @@ class ModelAPI:
             messages=[{"role": "user", "content": string}],
             temperature=temperature,
             top_p=top_p,
-            max_tokens=max_tokens,
+            max_tokens=4096,
         )
+        if not chat_completion.choices[0].message.content:
+            raise ValueError("The response from the API is NULL or an empty string!")
         return chat_completion.choices[0].message.content
-
 
 
     def api_send_claude(self,string, model="claude-3-opus-20240229", message=None, json_format=False,temperature=0.8):
         client = Anthropic(
-            api_key=api_key,
+            api_key=self.api_key,
         )
         model="claude-3-opus-20240229",
         print(f"Sending API request...{model}")
@@ -67,9 +70,11 @@ class ModelAPI:
             ],
             model="claude-3-opus-20240229",
         )
+        if not message.choices[0].message.content:
+            raise ValueError("The response from the API is NULL or an empty string!")
         full_response=message.content[0].text
-        print(full_response)
         return full_response
+    
     def api_send_gpt4(self,string, model, message=None, azure=True, json_format=False,temperature=0.8):
         azure = config["generation_settings"]["azure_openai"]
         if message is None:
@@ -97,21 +102,19 @@ class ModelAPI:
         else:
             model=config["generation_settings"]["openai_chat_model"]
             base_url = config["generation_settings"]["base_url"]
-            api_key = config['generation_settings']['openai_api']
-            
-            client = OpenAI(api_key=api_key,
+            client = OpenAI(api_key=self.api_key,
                             #base_url=base_url,
                             )
             model="gpt-4-0125-preview"
             print(f"Sending API request...{model},temperature:{temperature}")
-            stream = client.chat.completions.create(
+            chat_completion = client.chat.completions.create(
                 model=model,
                 messages=message,
                 temperature=temperature,
                 response_format=response_format,
             )
         dict(stream.usage) #{'completion_tokens': 28, 'prompt_tokens': 12, 'total_tokens': 40}
-        if not stream.choices[0].message.content:
+        if not chat_completion.choices[0].message.content:
             raise ValueError("The response from the API is NULL or an empty string!")
-        full_response=stream.choices[0].message.content
+        full_response=chat_completion.choices[0].message.content
         return full_response

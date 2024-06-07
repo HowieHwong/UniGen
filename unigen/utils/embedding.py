@@ -4,17 +4,16 @@ from openai import OpenAI,AzureOpenAI
 import random
 from utils import file_process
 import concurrent.futures
-from .config import config
+from .configuration import ConfigManager
+ConfigManager.load_config()
+config = ConfigManager.get_config_dict()
 
 
 def get_embedding(string, embedding_model='', azure=False):
-    #azure = config["generation_settings"]["azure_openai"]
     if azure:
         azure_endpoint = config["generation_settings"]["azure_base_url"]
         api_key = config['generation_settings']['openai_azure_api']
         api_version = config["generation_settings"]["azure_version"]
-        #model = config["generation_settings"]["azure_generation_engine"]
-        print(api_key)
         client = AzureOpenAI(
             azure_endpoint=azure_endpoint,
             api_key=api_key,
@@ -26,11 +25,8 @@ def get_embedding(string, embedding_model='', azure=False):
         )
         return response.data[0].embedding
     else:
-        
         embedding_model= config['generation_settings']['embedding_model']
         api_key = config['generation_settings']['openai_api']
-        print('aaaaaaaaa'*10,embedding_model,'\n\n\n\n\n')
-        #base_url = config["generation_settings"]["base_url"]
         client = OpenAI(api_key=api_key,
                         #base_url=base_url
                         )
@@ -51,7 +47,7 @@ from itertools import combinations
 
 def get_single_item_embedding(item,embedding_model):
 
-    print("Get embedding: " + item["text"])
+    #print("Get embedding: " + item["text"])
     item["embedding"]=get_embedding(item["text"],embedding_model)
     
     return item

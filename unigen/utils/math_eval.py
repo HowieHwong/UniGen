@@ -1,19 +1,12 @@
-import os,sys
-this_dir = os.path.dirname(os.path.realpath(__file__))
-sys.path.append(os.path.dirname(this_dir))
-
-import json
+import os
 import subprocess
 import tempfile
 from copy import deepcopy
-import os
 from utils import file_process,data_format
 from .IO import print
 from tenacity import retry, wait_random_exponential, stop_after_attempt
-from utils.config import ConfigManager
+from .prompt import prompt_template
 
-config=ConfigManager.get_config_dict()
-prompt_template=config["prompt"]
 
 def execute_code(code):
     with tempfile.NamedTemporaryFile(delete=False, suffix='.py') as tmpfile:

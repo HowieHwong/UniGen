@@ -11,8 +11,6 @@ def save_json(data, file_path):
         json.dump(data, f, ensure_ascii=False, indent=4)
 
 
-
-
 def check_and_rename_file(path):
     """
     Check if a file exists at the given path. If it does, rename it by adding
