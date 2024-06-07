@@ -7,7 +7,8 @@ import tiktoken
 import re
 from tqdm import tqdm
 from pprint import pprint
-from utils import embedding, data_format, file_process, wiki_eval, math_eval, self_reflection, add_attribute
+from unigen.utils import attribute
+from utils import embedding, data_format, file_process, wiki_eval, math_eval, self_reflection
 from utils.IO import print, input
 from joblib import Parallel, delayed
 from threading import Thread
@@ -278,7 +279,7 @@ class DyGenset:
             initial_prompt = description_prompt + initial_prompt
 
             if self.with_attr:
-                initial_prompt += add_attribute.add_attributes(examples=examples, attr_key=self.attr_key, attr=None)
+                initial_prompt += attribute.add_attributes(examples=examples, attr_key=self.attr_key, attr=None)
             initial_prompt += data_format.data_entry_format(el_num=self.batch_size, with_label=self.with_label,
                                                             attr_key=self.attr_key)
             assert dataset_config["efficiency_configuration"]["feedback_iteration"] > 0
@@ -324,10 +325,10 @@ class DyGenset:
                 if total_feedback:
                     epoch_prompt += total_feedback
                 if self.add_attribute:
-                    examples = add_attribute.get_attribute(examples, dataset_description=self.dataset_description)
+                    examples = attribute.get_attribute(examples, dataset_description=self.dataset_description)
                     self.with_attr = True
                 if self.with_attr:
-                    epoch_prompt += add_attribute.add_attributes(examples=examples, attr_key=self.attr_key, attr=None)
+                    epoch_prompt += attribute.add_attributes(examples=examples, attr_key=self.attr_key, attr=None)
                 epoch_prompt += data_format.data_entry_format(el_num=self.batch_size, with_label=self.with_label,
                                                               attr_key=self.attr_key)
                 res_data = data_format.get_res_data(epoch_prompt)
