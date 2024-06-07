@@ -7,7 +7,8 @@ import tiktoken
 import re
 from tqdm import tqdm
 from pprint import pprint
-from utils import embedding, data_format, file_process, wiki_eval, math_eval, self_reflection, add_attribute
+from unigen.utils import attribute
+from utils import embedding, data_format, file_process, wiki_eval, math_eval, self_reflection
 from utils.IO import print, input
 from joblib import Parallel, delayed
 from threading import Thread
@@ -39,13 +40,21 @@ DEBUG = True
 config = dict()
 
 
-class UniGen:
+class DyGenset:
     def __init__(self,
+                 model=None,
                  generation_number=None,
+                 batch_size=None,
+                 dataset_description=None,
                  dataset_constraint=None,
                  dataset_name="",
+                 temperature=None,
+                 few_shot_num=None,
                  max_tokens=1000,
                  random_example=False,
+                 with_label=True,
+                 max_worker=None,
+                 embedding_model="text-embedding-ada-002",
                  label_ratio=None,
                  **kwargs):
 
@@ -246,6 +255,48 @@ class UniGen:
         base_data = self.preprocess_input(dataset_path)
 
         total_feedback = ""
+        if dataset_config["efficiency_configuration"]["learn_from_human_feedback"]:
+            if config["generation_settings"]["few_shot_num"] > 0:
+                examples = self.example_selection(base_data, self.random_example)
+                few_shot_des = self.few_shot_description(examples)
+            else:
+                few_shot_des = "None"
+
+            if not dataset_config["dataset_configuration"]["dataset_constraint"]:
+                constraint_des = self.add_constraints(dataset_config["dataset_configuration"]["dataset_constraint"])
+            else:
+                constraint_des = ""
+            description_prompt = self.prompt_template["description_prompt"].format(
+                description_for_dataset=self.dataset_description, )
+
+            # response = get_res.api_send("""Please paraphase the following passage while perserving the meaning,(json format:{"paraphased":""}):\n\n"""+description_prompt, "gpt4-1106-preview",json_format=True)
+            # data = json.loads(response)
+            # description_prompt = data.get("paraphased", "Unknown")
+
+            initial_prompt = self.prompt_template["initial_prompt"].format(batch_size=self.batch_size,
+                                                                           dataset_constraint=constraint_des,
+                                                                           few_shot_examples=few_shot_des)
+            initial_prompt = description_prompt + initial_prompt
+
+            if self.with_attr:
+                initial_prompt += attribute.add_attributes(examples=examples, attr_key=self.attr_key, attr=None)
+            initial_prompt += data_format.data_entry_format(el_num=self.batch_size, with_label=self.with_label,
+                                                            attr_key=self.attr_key)
+            assert dataset_config["efficiency_configuration"]["feedback_iteration"] > 0
+            for iter in range(0, dataset_config["efficiency_configuration"]["feedback_iteration"]):
+
+                res_data = data_format.get_res_data(initial_prompt)
+                data_item = data_format.extract_data_item(res_data)
+
+                feedback = self.learn_from_human_feedback(data_item)
+                if iter == 0:
+                    feedback = self.prompt_template["feedback_prefix"] + feedback
+                total_feedback += feedback
+
+            print("-------------------------------Human Feedback-------------------------------", "GREEN")
+            print(total_feedback)
+            print("----------------------------------------------------------------------------", "GREEN")
+
         @retry(wait=wait_random_exponential(min=5, max=20), stop=stop_after_attempt(3))
         def batch_generation(batch_id, queue):
             try:
@@ -274,10 +325,10 @@ class UniGen:
                 if total_feedback:
                     epoch_prompt += total_feedback
                 if self.add_attribute:
-                    examples = add_attribute.get_attribute(examples, dataset_description=self.dataset_description)
+                    examples = attribute.get_attribute(examples, dataset_description=self.dataset_description)
                     self.with_attr = True
                 if self.with_attr:
-                    epoch_prompt += add_attribute.add_attributes(examples=examples, attr_key=self.attr_key, attr=None)
+                    epoch_prompt += attribute.add_attributes(examples=examples, attr_key=self.attr_key, attr=None)
                 epoch_prompt += data_format.data_entry_format(el_num=self.batch_size, with_label=self.with_label,
                                                               attr_key=self.attr_key)
                 res_data = data_format.get_res_data(epoch_prompt)
@@ -315,12 +366,12 @@ class UniGen:
                                 batch_data[batch_data.index(item)] = truthfulness_eval_res
 
                 file_process.save_json(batch_data,
-                                       f'/media/ssd/wtm/UniGen/test_dataset/TruthfulQA/temper_case/{batch_id}_{self.temperature}.json')
+                                       f'/media/ssd/wtm/DyGenset/test_dataset/TruthfulQA/temper_case/{batch_id}_{self.temperature}.json')
                 queue.put(batch_data)
                 return batch_data
             except Exception as e:
                 print(traceback.format_exc())
-                # print(f"Error in running UniGen: Epoch{_}")
+                # print(f"Error in running DyGenset: Epoch{_}")
                 return None
 
         total_batches = int(self.generation_number / self.batch_size)
@@ -421,7 +472,7 @@ def main(config):
         f"test_dataset/{dataset_name}/{dataset_name}_{model_type}_generated.json")
 
     print(f'generation_number：{generation_number}')
-    generator = UniGen(dataset_name=dataset_name,
+    generator = DyGenset(dataset_name=dataset_name,
                          generation_number=generation_number,
                          few_shot_num=few_shot_num,
                          random_example=False)
