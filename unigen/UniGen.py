@@ -34,7 +34,7 @@ class UniGen:
                  **kwargs):
 
         dataset_config = config['dataset_configuration']
-        efficiency_configuration=config['efficiency_configuration']
+        self.efficiency_configuration=config['efficiency_configuration']
         pprint(dataset_config)
         dataset_description = dataset_config['dataset_configuration']['dataset_description']
         self.batch_size = config['generation_settings']['batch_size']
@@ -51,7 +51,7 @@ class UniGen:
         self.extra_info_keys = dataset_config['dataset_configuration'].get('extra_info_keys', [])
         self.max_worker = config['generation_settings']['max_worker']
         self.prompt_template = config["prompt"]
-        self.attr_key = dataset_config['dataset_configuration']['attr_key'] if self.with_attribute or self.add_attribute else None
+        self.attr_key = dataset_config['dataset_configuration']['attribute_key'] if self.with_attribute or self.add_attribute else None
 
     def initialize_prompt(self):
         initial_prompt = self.prompt_template["initial_prompt"]
@@ -60,8 +60,7 @@ class UniGen:
         return prompt
 
     def preprocess_input(self, file_path):
-        with open(file_path, 'r', encoding='utf-8') as f:
-            data = json.load(f)
+        data=load_json(file_path)
         assert isinstance(data, list)
         if self.with_label:
             assert 'text' in list(data[0].keys()) and 'label' in list(data[0].keys())
@@ -70,35 +69,25 @@ class UniGen:
     def example_selection(self, data, random_=False):
         keys = ['text', 'label'] + self.extra_info_keys
         filtered_data = []
-        if self.attr_key:
-            keys = keys + [self.attr_key, ]
-
+        if self.attribute_key:
+            keys = keys + [self.attribute_key, ]
         for item in data:
             filtered_item = {k: item[k] for k in keys if k in item}
             filtered_data.append(filtered_item)
-
         data = filtered_data
-
         assert isinstance(data, list)
-
         if random_:
             random.shuffle(data)
             examples = data[:self.few_shot_num]
-
         else:
             embedding_path = 'embedding/{}_dataset_embedding.json'
             if not os.path.exists(embedding_path.format(self.dataset_name)):
                 embeddings = embedding.generate_dataset_embedding(data, self.embedding_model)
-
                 save_json(embeddings, embedding_path.format(self.dataset_name))
-
             else:
                 embeddings = load_json(embedding_path.format(self.dataset_name))
-
             examples = embedding.cluster_embeddings(data, embeddings, num_clusters=self.few_shot_num)
-
         random.shuffle(examples)
-        # examples = data[:self.few_shot_num]
         filtered_example = []
         for item in examples:
             filtered_item = {k: item[k] for k in keys if k in item}
@@ -197,9 +186,9 @@ class UniGen:
                     examples = attribute.get_attribute(examples, dataset_description=self.dataset_description)
                     self.with_attribute = True
                 if self.with_attribute:
-                    epoch_prompt += attribute.add_attributes(examples=examples, attr_key=self.attr_key, attr=None)
+                    epoch_prompt += attribute.add_attributes(examples=examples, attribute_key=self.attribute_key, attr=None)
                 epoch_prompt += data_format.data_entry_format(el_num=self.batch_size, with_label=self.with_label,
-                                                                attr_key=self.attr_key)
+                                                                attribute_key=self.attribute_key)
                 res_data = data_format.get_res_data(epoch_prompt)
                 epoch_data_item = data_format.extract_data_item(res_data)
 
