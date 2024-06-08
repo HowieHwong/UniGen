@@ -387,10 +387,7 @@ class DyGenset:
         save_thread.join()
 
 
-
-
-
-def main(config):
+def generation(config):
     dataset_name = config['dataset_name']
     generation_number = config['generation_number']
     few_shot_num = config['few_shot_num']
@@ -401,23 +398,12 @@ def main(config):
     generated_data_file_path = check_and_rename_file(
         f"test_dataset/{dataset_name}/{dataset_name}_{model_type}_generated.json")
 
-    print(f'generation_number：{generation_number}')
+    print(f'generation_number: {generation_number}')
     generator = DyGenset(dataset_name=dataset_name,
                          generation_number=generation_number,
                          few_shot_num=few_shot_num,
                          random_example=False)
     generator.run(data_file_path, generated_data_file_path)
-
-if __name__ == '__main__':
-    if len(sys.argv) != 2:
-        print("Usage: python script.py <config.yaml>")
-        sys.exit(1)
-
-    config_path = sys.argv[1]
-    final_config = load_config(config_path)
-    
-    ConfigManager.set_config_dict(final_config)
-    main(final_config)
 
 
 
