@@ -190,16 +190,11 @@ class UniGen:
 
                 if self.few_shot_num > 0:
                     examples = self.example_selection(base_data, self.random_example)
-                    # examples=self.load_few_shot(batch_id)
                     few_shot_des = self.few_shot_description(examples)
-                    # self.save_few_shot(examples,batch_id)
-                    # return
-
                 if self.constraints != []:
                     constraint_des = self.add_constraints(self.constraints)
                 else:
                     constraint_des = ""
-
                 description_prompt = self.prompt_template["description_prompt"].format(
                     description_for_dataset=self.dataset_description,
                 )
@@ -233,9 +228,7 @@ class UniGen:
 
                 else:
                     batch_data += epoch_data_item
-
                 if dataset_config["efficiency_configuration"]["math_eval"]:
-
                     for item in batch_data:
                         print("math_eval", item["text"])
                         batch_data[batch_data.index(item)] = math_eval.math_eval(item)
