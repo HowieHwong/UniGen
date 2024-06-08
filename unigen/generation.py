@@ -36,37 +36,22 @@ from tenacity import retry, wait_random_exponential, stop_after_attempt
 warnings.filterwarnings("ignore")
 
 DEBUG = True
-config = dict()
 
 
 class DyGenset:
     def __init__(self,
-                 model=None,
-                 generation_number=None,
-                 batch_size=None,
-                 dataset_description=None,
-                 dataset_constraint=None,
-                 dataset_name="",
-                 temperature=None,
-                 few_shot_num=None,
-                 max_tokens=1000,
-                 random_example=False,
-                 with_label=True,
-                 max_worker=None,
-                 embedding_model="text-embedding-ada-002",
-                 label_ratio=None,
+                 config,
                  **kwargs):
 
-        config = ConfigManager.get_config_dict()
         dataset_config = config['dataset_configuration']
         pprint(dataset_config)
         dataset_description = dataset_config['dataset_configuration']['dataset_description']
-
-        batch_size = config['generation_settings']['batch_size']
-        few_shot_num = config['generation_settings']['few_shot_num']
+        self.batch_size = config['generation_settings']['batch_size']
+        self.few_shot_num = config['generation_settings']['few_shot_num']
+        self.generation_number =config['generation_settings']['generation_number']
         self.model = model
         self.dataset_description = dataset_description
-        self.dataset_constraint = dataset_constraint
+        self.constraints=dataset_config["dataset_configuration"]["dataset_constraint"]
         self.dataset_name = dataset_name
         self.temperature = config['generation_settings']['temperature']
         self.random_example = random_example
@@ -76,11 +61,7 @@ class DyGenset:
         self.add_attribute = dataset_config['dataset_configuration']['add_attribute']
         self.extra_info_keys = dataset_config['dataset_configuration'].get('extra_info_keys', [])
         self.max_worker = config['generation_settings']['max_worker']
-        self.generation_number = generation_number
-        self.label_ratio = label_ratio
-        self.batch_size = batch_size
         self.prompt_template = config["prompt"]
-        self.few_shot_num = few_shot_num
         self.attr_key = dataset_config['dataset_configuration']['attr_key'] if self.with_attr or self.add_attribute else None
 
     def initialize_prompt(self):
@@ -90,7 +71,6 @@ class DyGenset:
         return prompt
 
     def preprocess_input(self, file_path):
-        # ensure the format of base dataset: {"text": "xxx", "label": "xxx"} or ["text_1", "text_2", ...]
         with open(file_path, 'r', encoding='utf-8') as f:
             data = json.load(f)
         assert isinstance(data, list)
@@ -142,23 +122,6 @@ class DyGenset:
         random.shuffle(examples)
         json_output = json.dumps(examples, indent=4)
         return json_output
-
-    def save_few_shot(self, examples, batch):
-
-        # 将JSON数据保存到文件
-        json_data = examples
-        file_path = f'{self.dataset_name}_{batch}.json'  # 指定文件名和路径
-        save_json(examples, file_path)
-        print("JSON data has been saved to", file_path)
-
-    def load_few_shot(self, batch):
-
-        # 将JSON数据保存到文件
-        # json_data=examples
-        file_path = f'{self.dataset_name}_{batch}.json'  # 指定文件名和路径
-        examples = load_json(file_path)
-        print(f'{self.dataset_name}_{batch}.json')
-        return examples
 
     def add_constraints(self, constraints):
         constraints_text = self.prompt_template["constraints_prefix"]
@@ -229,9 +192,9 @@ class DyGenset:
                 few_shot_des = self.few_shot_description(examples)
             else:
                 few_shot_des = "None"
-
-            if not dataset_config["dataset_configuration"]["dataset_constraint"]:
-                constraint_des = self.add_constraints(dataset_config["dataset_configuration"]["dataset_constraint"])
+            
+            if not self.constraints:
+                constraint_des = self.add_constraints(self.constraints)
             else:
                 constraint_des = ""
             description_prompt = self.prompt_template["description_prompt"].format(
@@ -265,15 +228,15 @@ class DyGenset:
             try:
                 batch_data = []
 
-                if config["generation_settings"]["few_shot_num"] > 0:
+                if self.few_shot_num > 0:
                     examples = self.example_selection(base_data, self.random_example)
                     # examples=self.load_few_shot(batch_id)
                     few_shot_des = self.few_shot_description(examples)
                     # self.save_few_shot(examples,batch_id)
                     # return
 
-                if dataset_config["dataset_configuration"]["dataset_constraint"] != []:
-                    constraint_des = self.add_constraints(dataset_config["dataset_configuration"]["dataset_constraint"])
+                if self.constraints != []:
+                    constraint_des = self.add_constraints(self.constraints)
                 else:
                     constraint_des = ""
 
@@ -399,7 +362,7 @@ def generation(config):
         f"test_dataset/{dataset_name}/{dataset_name}_{model_type}_generated.json")
 
     print(f'generation_number: {generation_number}')
-    generator = DyGenset(dataset_name=dataset_name,
+    generator = DyGenset(config,dataset_name=dataset_name,
                          generation_number=generation_number,
                          few_shot_num=few_shot_num,
                          random_example=False)
