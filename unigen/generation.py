@@ -1,5 +1,6 @@
 import os.path
 import openai
+import sys
 import json
 import typing
 import random
@@ -17,7 +18,7 @@ import warnings
 import traceback
 from dataclasses import dataclass, field
 from simple_parsing import ArgumentParser
-import concurrent.futures
+from concurrent.futures import ThreadPoolExecutor
 from threading import Thread
 from datetime import datetime
 from tenacity import retry, wait_random_exponential, stop_after_attempt
@@ -56,20 +57,14 @@ class DyGenset:
                  label_ratio=None,
                  **kwargs):
 
-        config['generation_settings'] = ConfigManager.get_config_dict()
-        dataset_config = load_json(f"test_dataset/{dataset_name}/config.json")
+        config = ConfigManager.get_config_dict()
+        dataset_config = config['dataset_configuration']
         pprint(dataset_config)
-
         dataset_description = dataset_config['dataset_configuration']['dataset_description']
 
         batch_size = config['generation_settings']['batch_size']
-        # generation_number = config['generation_settings']['generation_number']
         few_shot_num = config['generation_settings']['few_shot_num']
-        model = config['generation_settings']['openai_chat_model']
-        openai_api = config['generation_settings']['openai_api']
-
         self.model = model
-        self.openai_api = openai_api
         self.dataset_description = dataset_description
         self.dataset_constraint = dataset_constraint
         self.dataset_name = dataset_name
@@ -82,17 +77,11 @@ class DyGenset:
         self.extra_info_keys = dataset_config['dataset_configuration'].get('extra_info_keys', [])
         self.max_worker = config['generation_settings']['max_worker']
         self.generation_number = generation_number
-
-        self.embedding_model = config['generation_settings']['embedding_model']
         self.label_ratio = label_ratio
         self.batch_size = batch_size
         self.prompt_template = config["prompt"]
         self.few_shot_num = few_shot_num
-        openai.api_key = self.openai_api
-
-        # The above code is accessing the attribute `attr_key` of the `self` object in Python.
-        self.attr_key = dataset_config['dataset_configuration'][
-            'attr_key'] if self.with_attr or self.add_attribute else None
+        self.attr_key = dataset_config['dataset_configuration']['attr_key'] if self.with_attr or self.add_attribute else None
 
     def initialize_prompt(self):
         initial_prompt = self.prompt_template["initial_prompt"]
@@ -231,7 +220,6 @@ class DyGenset:
         assert self.generation_number % self.batch_size == 0, "generation_number must be divisible by batch_size"
         dataset_config = load_json(f"test_dataset/{self.dataset_name}/config.json")
         generated_dataset = list()
-        # load base dataset
         base_data = self.preprocess_input(dataset_path)
 
         total_feedback = ""
@@ -334,7 +322,7 @@ class DyGenset:
                 if dataset_config["efficiency_configuration"]["truthfulness_eval"]:
                     if batch_data:
                         for item in batch_data:
-                            truthfulness_eval_res = wiki_eval.wiki_check(item)
+                            truthfulness_eval_res = RAG_eval.wiki_check(item)
                             if truthfulness_eval_res == "NONE":
                                 batch_data[batch_data.index(item)] = item
                             else:
@@ -379,7 +367,7 @@ class DyGenset:
         all_data = []
 
         def save_data_to_file(queue):
-            print(f"Data save path:{generated_data_file_path}\n\n\n\n\n")
+            print(f"Data save path:{generated_data_file_path}\n\n\n")
             while True:
                 data = queue.get() 
                 if data == "DONE":
@@ -393,35 +381,11 @@ class DyGenset:
         save_thread = Thread(target=save_data_to_file, args=(data_queue,))
         save_thread.start()
         # 并行生成数据
-        with concurrent.futures.ThreadPoolExecutor(max_workers=self.max_worker) as executor:
+        with ThreadPoolExecutor(max_workers=self.max_worker) as executor:
             futures = [executor.submit(batch_generation, batch_id=i, queue=data_queue) for i in range(total_batches)]
         data_queue.put("DONE")
         save_thread.join()
 
-
-@dataclass
-class CommandLineConfig:
-    dataset_name: typing.Optional[str] = field(default="HellaSwag")
-    batch_size: typing.Optional[int] = field(default=None)
-    generation_number: typing.Optional[int] = field(default=None)
-    few_shot_num: typing.Optional[int] = field(default=None)
-    temperature: typing.Optional[float] = field(default=None)
-    model_type: typing.Optional[str] = field(default=None)
-
-
-def parse_command_line_args() -> CommandLineConfig:
-    parser = ArgumentParser()
-    parser.add_arguments(CommandLineConfig, dest="command_line_config")
-    args = parser.parse_args()
-    return args.command_line_config
-
-
-def merge_configs(file_config: dict, cmd_config: CommandLineConfig) -> dict:
-    # 将命令行配置转换为字典
-    cmd_config_dict = {k: v for k, v in vars(cmd_config).items() if v is not None}
-    # 更新默认配置
-    file_config.update(cmd_config_dict)
-    return file_config
 
 
 
@@ -444,16 +408,16 @@ def main(config):
                          random_example=False)
     generator.run(data_file_path, generated_data_file_path)
 
-
 if __name__ == '__main__':
-    config = ConfigManager.get_config_dict()
-    file_config = {**config['generation_settings']}
-    cmd_config = parse_command_line_args()
-    final_config = merge_configs(file_config, cmd_config)
-    pprint(final_config)
+    if len(sys.argv) != 2:
+        print("Usage: python script.py <config.yaml>")
+        sys.exit(1)
+
+    config_path = sys.argv[1]
+    final_config = load_config(config_path)
+    
     ConfigManager.set_config_dict(final_config)
     main(final_config)
-
 
 
 

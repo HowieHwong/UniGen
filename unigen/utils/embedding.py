@@ -9,7 +9,8 @@ ConfigManager.load_config()
 config = ConfigManager.get_config_dict()
 
 
-def get_embedding(string, embedding_model='', azure=False):
+def get_embedding(string, config, azure=False):
+    
     if azure:
         azure_endpoint = config["generation_settings"]["azure_base_url"]
         api_key = config['generation_settings']['openai_azure_api']
