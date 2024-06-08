@@ -23,16 +23,6 @@ from threading import Thread
 from datetime import datetime
 from tenacity import retry, wait_random_exponential, stop_after_attempt
 
-# import debugpy
-# try:
-#     # 5678 is the default attach port in the VS Code debug configurations. Unless a host and port are specified, host defaults to 127.0.0.1
-#     debugpy.listen(("localhost", 9501))
-#     print("Waiting for debugger attach")
-#     debugpy.wait_for_client()
-# except Exception as e:
-#     pass
-
-
 warnings.filterwarnings("ignore")
 
 DEBUG = True
@@ -44,6 +34,7 @@ class UniGen:
                  **kwargs):
 
         dataset_config = config['dataset_configuration']
+        efficiency_configuration=config['efficiency_configuration']
         pprint(dataset_config)
         dataset_description = dataset_config['dataset_configuration']['dataset_description']
         self.batch_size = config['generation_settings']['batch_size']
@@ -55,12 +46,12 @@ class UniGen:
         self.temperature = config['generation_settings']['temperature']
         self.random_example = dataset_config['dataset_configuration']['with_label']
         self.with_label = dataset_config['dataset_configuration']['with_label']
-        self.with_attr = dataset_config['dataset_configuration']['with_attr']
+        self.with_attribute = dataset_config['dataset_configuration']['with_attribute']
         self.add_attribute = dataset_config['dataset_configuration']['add_attribute']
         self.extra_info_keys = dataset_config['dataset_configuration'].get('extra_info_keys', [])
         self.max_worker = config['generation_settings']['max_worker']
         self.prompt_template = config["prompt"]
-        self.attr_key = dataset_config['dataset_configuration']['attr_key'] if self.with_attr or self.add_attribute else None
+        self.attr_key = dataset_config['dataset_configuration']['attr_key'] if self.with_attribute or self.add_attribute else None
 
     def initialize_prompt(self):
         initial_prompt = self.prompt_template["initial_prompt"]
@@ -179,18 +170,17 @@ class UniGen:
 
     def run(self, dataset_path, generated_data_file_path):
         assert self.generation_number % self.batch_size == 0, "generation_number must be divisible by batch_size"
-        dataset_config = load_json(f"test_dataset/{self.dataset_name}/config.json")
-        generated_dataset = list()
         base_data = self.preprocess_input(dataset_path)
 
         @retry(wait=wait_random_exponential(min=5, max=20), stop=stop_after_attempt(3))
         def batch_generation(batch_id, queue):
             try:
                 batch_data = []
-
                 if self.few_shot_num > 0:
                     examples = self.example_selection(base_data, self.random_example)
                     few_shot_des = self.few_shot_description(examples)
+                else:
+                     constraint_des = ""
                 if self.constraints != []:
                     constraint_des = self.add_constraints(self.constraints)
                 else:
@@ -205,50 +195,41 @@ class UniGen:
 
                 if self.add_attribute:
                     examples = attribute.get_attribute(examples, dataset_description=self.dataset_description)
-                    self.with_attr = True
-                if self.with_attr:
+                    self.with_attribute = True
+                if self.with_attribute:
                     epoch_prompt += attribute.add_attributes(examples=examples, attr_key=self.attr_key, attr=None)
                 epoch_prompt += data_format.data_entry_format(el_num=self.batch_size, with_label=self.with_label,
-                                                              attr_key=self.attr_key)
+                                                                attr_key=self.attr_key)
                 res_data = data_format.get_res_data(epoch_prompt)
                 epoch_data_item = data_format.extract_data_item(res_data)
 
-                with open('prompt.json', 'a') as f:
-                    json.dump(epoch_prompt, f)
-
-                if dataset_config["efficiency_configuration"]["self_reflection"]:
-                    reflection_res = self_reflection.self_reflection(epoch_data_item, self.dataset_description,
-                                                                     few_shot_des, constraint_des)
+                if self.efficiency_configuration["self_reflection"]:
+                    reflection_res = self_reflection.reflection(epoch_data_item, self.dataset_description,
+                                                                few_shot_des, constraint_des)
                     for index, reflect_res in enumerate(reflection_res):
-                        reflect_res['text'] = reflect_res['text']
                         if reflect_res['text']:
                             batch_data.append(reflect_res)
                         else:
                             batch_data.append(epoch_data_item[index])
-
                 else:
                     batch_data += epoch_data_item
-                if dataset_config["efficiency_configuration"]["math_eval"]:
+                if self.efficiency_configuration["math_eval"]:
                     for item in batch_data:
                         print("math_eval", item["text"])
                         batch_data[batch_data.index(item)] = math_eval.math_eval(item)
 
-                if dataset_config["efficiency_configuration"]["truthfulness_eval"]:
+                if self.efficiency_configuration["truthfulness_eval"]:
                     if batch_data:
-                        for item in batch_data:
+                        for item in batch_data:                            
                             truthfulness_eval_res = RAG_eval.wiki_check(item)
-                            if truthfulness_eval_res == "NONE":
-                                batch_data[batch_data.index(item)] = item
-                            else:
+                            if truthfulness_eval_res:
                                 batch_data[batch_data.index(item)] = truthfulness_eval_res
-
-                save_json(batch_data,
-                                       f'/media/ssd/wtm/UniGen/test_dataset/TruthfulQA/temper_case/{batch_id}_{self.temperature}.json')
+                            else:
+                                batch_data[batch_data.index(item)] = item
                 queue.put(batch_data)
                 return batch_data
             except Exception as e:
                 print(traceback.format_exc())
-                # print(f"Error in running UniGen: Epoch{_}")
                 return None
 
         total_batches = int(self.generation_number / self.batch_size)
@@ -267,12 +248,11 @@ class UniGen:
                 config['filtered_data_entry_num'] = len(filtered_dataset)
                 genset = {
                     'update_time': human_readable_time,
-                    "dataset_config": dataset_config,
+                    "dataset_config": self.config,
                     "gen_config": config,
                     "dataset": generated_dataset
                 }
                 with open(generated_data_file_path, 'w') as f:
-
                     json.dump(genset, f, ensure_ascii=False, indent=4)
                     print("Dataset saved successfully.", color='BLUE', )
             except Exception as e:
@@ -291,10 +271,8 @@ class UniGen:
                 queue.task_done()
 
         data_queue = Queue()
-        # 启动数据保存线程
         save_thread = Thread(target=save_data_to_file, args=(data_queue,))
         save_thread.start()
-        # 并行生成数据
         with ThreadPoolExecutor(max_workers=self.max_worker) as executor:
             futures = [executor.submit(batch_generation, batch_id=i, queue=data_queue) for i in range(total_batches)]
         data_queue.put("DONE")
@@ -308,8 +286,6 @@ def generation(config):
     generated_data_file_path = config['generated_file']
 
     data_file_path = f"test_dataset/{dataset_name}/{dataset_name}.json"
-    # generated_data_file_path = check_and_rename_file(
-    #     f"test_dataset/{dataset_name}/{dataset_name}_{model_type}_generated.json")
     generator = UniGen(config)
     generator.run(data_file_path, generated_data_file_path)
 

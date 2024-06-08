@@ -23,7 +23,7 @@ dataset_configuration:
   dataset_name: "GSM8K"
   dataset_constraint: []
   with_label: true
-  with_attr: false
+  with_attribute: false
   add_attribute: false
   extra_info_keys: []
 

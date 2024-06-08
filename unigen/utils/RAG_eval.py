@@ -46,13 +46,16 @@ def _get_wiki_content(keyword):
     
 
         
-def wiki_check(input_text):
+def wiki_check(data_item):
+    input_text = {
+            'question': data_item['text'],
+            'label': data_item['label']
+    }
     keywords = _extract_keywords(input_text)
     keyword_content_pairs = []
     def fetch_content(keyword):
         content = _get_wiki_content(keyword)
         return (keyword, content)
-
     with concurrent.futures.ThreadPoolExecutor() as executor:
         futures = [executor.submit(fetch_content, keyword) for keyword in keywords]
         for future in concurrent.futures.as_completed(futures):
@@ -62,6 +65,9 @@ def wiki_check(input_text):
         'keyword_content_pairs': keyword_content_pairs,
         'refined_content': _refine_content(input_text, keyword_content_pairs)
     }
-    return refined_content
+    if refined_content['refined_content']["is_original_example_good"]:
+        return None
+    else:
+        return refined_content["refined_text"]
 
 

@@ -67,7 +67,7 @@ def reflection_improve_example(example, dataset_description, few_shot_des, const
     return example, isgood, reflection_epoch_trajectory
 
 
-def self_reflection(examples, dataset_description, few_shot_des, constraint, max_reflection=5,):
+def reflection(examples, dataset_description, few_shot_des, constraint, max_reflection=5,):
     with ThreadPoolExecutor(max_workers=len(examples)) as executor:
         futures = [executor.submit(reflect_single_example, example, dataset_description, few_shot_des, constraint,
                                    max_reflection) for example in examples]
