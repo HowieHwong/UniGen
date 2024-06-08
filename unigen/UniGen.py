@@ -49,13 +49,11 @@ class UniGen:
         self.batch_size = config['generation_settings']['batch_size']
         self.few_shot_num = config['generation_settings']['few_shot_num']
         self.generation_number =config['generation_settings']['generation_number']
-        self.model = model
         self.dataset_description = dataset_description
         self.constraints=dataset_config["dataset_configuration"]["dataset_constraint"]
-        self.dataset_name = dataset_name
+        self.dataset_name = config["dataset_configuration"]["dataset_name"]
         self.temperature = config['generation_settings']['temperature']
-        self.random_example = random_example
-        self.max_tokens = max_tokens
+        self.random_example = dataset_config['dataset_configuration']['with_label']
         self.with_label = dataset_config['dataset_configuration']['with_label']
         self.with_attr = dataset_config['dataset_configuration']['with_attr']
         self.add_attribute = dataset_config['dataset_configuration']['add_attribute']
@@ -185,47 +183,6 @@ class UniGen:
         generated_dataset = list()
         base_data = self.preprocess_input(dataset_path)
 
-<<<<<<< HEAD:unigen/generation.py
-        total_feedback = ""
-        if dataset_config["efficiency_configuration"]["learn_from_human_feedback"]:
-            if config["generation_settings"]["few_shot_num"] > 0:
-                examples = self.example_selection(base_data, self.random_example)
-                few_shot_des = self.few_shot_description(examples)
-            else:
-                few_shot_des = "None"
-            
-            if not self.constraints:
-                constraint_des = self.add_constraints(self.constraints)
-            else:
-                constraint_des = ""
-            description_prompt = self.prompt_template["description_prompt"].format(
-                description_for_dataset=self.dataset_description, )
-
-
-            initial_prompt = self.prompt_template["initial_prompt"].format(batch_size=self.batch_size,
-                                                                           dataset_constraint=constraint_des,
-                                                                           few_shot_examples=few_shot_des)
-            initial_prompt = description_prompt + initial_prompt
-
-            if self.with_attr:
-                initial_prompt += attribute.add_attributes(examples=examples, attr_key=self.attr_key, attr=None)
-            initial_prompt += data_format.data_entry_format(el_num=self.batch_size, with_label=self.with_label,
-                                                            attr_key=self.attr_key)
-            assert dataset_config["efficiency_configuration"]["feedback_iteration"] > 0
-            for iter in range(0, dataset_config["efficiency_configuration"]["feedback_iteration"]):
-                res_data = data_format.get_res_data(initial_prompt)
-                data_item = data_format.extract_data_item(res_data)
-                feedback = self.learn_from_human_feedback(data_item)
-                if iter == 0:
-                    feedback = self.prompt_template["feedback_prefix"] + feedback
-                total_feedback += feedback
-
-            print("-------------------------------Human Feedback-------------------------------", "GREEN")
-            print(total_feedback)
-            print("----------------------------------------------------------------------------", "GREEN")
-
-=======
->>>>>>> e562c0ebd62de66e6e2655fdbd8102bf788297be:unigen/UniGen.py
         @retry(wait=wait_random_exponential(min=5, max=20), stop=stop_after_attempt(3))
         def batch_generation(batch_id, queue):
             try:
