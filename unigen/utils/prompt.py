@@ -1,0 +1,21 @@
+prompt_template={
+    "description_prompt": "You are a professional dataset generator. Your primary task is to develop questions that not only adhere closely to the specific requirements outlined in DATASET DESCRIPTION but also push the boundaries of complexity and challenge. While remaining faithful to the given description, strive to craft questions that elevate the level of difficulty as much as possible, encouraging deep engagement and rigorous thinking. The goal is to create a dataset where each question presents a substantial challenge, testing the limits of the respondents' knowledge and problem-solving skills.\n\n DATASET DESCRIPTION:{description_for_dataset}\n\n",
+    
+    "initial_prompt": "The number of entries to be generated in this dataset is {batch_size}.\nBelow are a few examples for your reference:\n\n{few_shot_examples}\n\n{dataset_constraint}\nPlease ensure that the new dataset maintains the purpose of the original data, avoiding any contamination or loss of functionality.\n\n",
+    
+    "return_format_prompt": "The number of entries to be generated is {batch_size}. Directly return your answer exactly as the following JSON format:\n\n{data_format}\n\n Directly return your answer as JSON format:\n",
+    
+    "constraints_prefix": "Please note the following constraints when generating new datasets:\n",
+    "constraints_suffix": "These are all the constraints. Please adhere to them strictly when generating new datasets.",
+    
+    "improve_examples_with_human_feedback": "Based on human feedback, please improve and regenerate example.\n\nHUMAN_FEEDBACK:{user_feedback}\n\nEXAMPLE:{example} Generate improved example that reflect the insights and suggestions from the feedback. Directly output the improved example in JSON format, using the structure {\"improved_example\":\"CONTENT\"}",
+    "wiki_keyword_extract": "Please analyze the text and identify key entities that are likely to have corresponding articles on Wikipedia for fact-checking purposes. Extract entities such as names of people, places, organizations, historical events, specific technologies, and scientific terms(At most 3) \n\nMy text:{input_text}\n\nDirectly output the list(only one list) of these entities in JSON format, using the structure {{\"entities\":[item1,item2,xxxxx]}}",
+    
+    "wiki_fact_refine": """Check MY TEXT based on each keyword and content from wikipedia, please check for accuracy against Wikipedia information. MY Data Entry:{input_text}\n\n\n WIKI DATA:{wiki_data} \n\n Check my input_text based on each keyword and content from wikipedia.Correct any misinformation if any mistake in my example. If the information is accurate, please confirm it. Ensure that the final refined TEXT is accurate and contains no factual errors. If the original example is accurate and contains no factual errors, refined_text can be NONE. If original example is not good, make sure the final refined example is right. Finally output in JSON format, using the structure {{\"thinking_progress\":\"YOUR THINKING and CONFORMATION\",\n\"is_original_example_good\":\"True/False\"\n\"refined_text\":\"CORRECTED Data Entry\"}}""",
+    
+    "math_eval": """I will give you a piece of text containing some mathematical information. It requires precise calculations to verify its correctness. Therefore, please translate it into a segment of Python code to represent the mathematical calculation process mentioned in the text, and then compute the final answer and direct print the answer number. Format your output in a JSON format with key 'Code' for the executable code and 'Analysis' to explain how you transfer the sample into code. The input sample is: {expression}.""",
+    "math_eval_compare": "I will provide you with two answers, and I need you to help me determine whether these two answers are semantically equivalent. For example, '2' and 'two' are considered equivalent. If they are equivalent, please reply with 'True'. If they are not equivalent, reply with 'False'. Note that you should only reply with one word (either 'True' or 'False') and not include any other content. Here is two response: '{response1}', '{response2}'.",
+    "feedback_prefix": "The following is human feedback on some of the generated samples and your generated samples need to refer to the suggestions in the human feedback: \n"
+     
+    
+}

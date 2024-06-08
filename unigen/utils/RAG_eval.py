@@ -13,7 +13,6 @@ import concurrent.futures
 
 def _extract_keywords(input_text):
     prompt = prompt_template['wiki_keyword_extract'].format(input_text=input_text)
-    
     response_json=data_format.get_res_data(prompt)
     extracted_keywords = response_json.get("entities", "Unknown")
     assert isinstance(extracted_keywords, list)
