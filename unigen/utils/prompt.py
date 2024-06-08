@@ -1,4 +1,37 @@
-prompt_template={
+import json
+
+ans_format = {
+    "reflection": """(If isgood is "yes", include reasons here. If "no", include a detailed analysis here.)""",
+    "isgood": "yes/no",
+}
+
+few_shot_examples = '''Few Shot Examples:
+[[few_shot_des]]
+'''
+
+reflection_generation = '''You are a professional dataset generation assistant. Your task is to assess the quality of the provided Data Entry based on dataset description,few shot examples and criteria such as quality, format, relevance, accuracy, and challenge level. 
+DATASET DESCRIPTION:[[description]]
+
+[[few_shot_examples]]
+
+[[constraint]]
+
+Provide your evaluation in string format, formatted as JSON. For each question in the dataset, provide a detailed analysis in the 'reflection' field discussing the question's merits and shortcomings first. Identify its strengths, point out any weaknesses, suggest potential improvements, and evaluate the complexity of the question to ensure it stick to the purpose in dataset description and meets the challenge level. After reflecting, indicate in the 'isgood' field whether the question satisfies the expected standards. Use 'yes' ONLY if both conditions are met comprehensively. If the question falls short in any aspect, mark 'no'.
+
+Data Entry for Evaluation:
+[[example]]
+
+Your assessment and reflection must be formatted as following JSON:
+[[ans_format]]
+Directly output your improved example as the following JSON format:'''
+
+reflection_generation = reflection_generation.replace("[[ans_format]]", json.dumps(ans_format))
+
+prompt_template=dict()
+prompt_template['reflection_generation'] = reflection_generation
+prompt_template['few_shot_examples'] = few_shot_examples
+
+prompt_template.update({
     "description_prompt": "You are a professional dataset generator. Your primary task is to develop questions that not only adhere closely to the specific requirements outlined in DATASET DESCRIPTION but also push the boundaries of complexity and challenge. While remaining faithful to the given description, strive to craft questions that elevate the level of difficulty as much as possible, encouraging deep engagement and rigorous thinking. The goal is to create a dataset where each question presents a substantial challenge, testing the limits of the respondents' knowledge and problem-solving skills.\n\n DATASET DESCRIPTION:{description_for_dataset}\n\n",
     'attribute_prompt':'''My goal is to enhance the diversity of the dataset. I will provide an overall description of the dataset each time, along with a few examples from the original dataset. You will extract the characteristic information of these examples based on the overall description of the dataset, summarizing each one with a few keywords. Ensure that it matches the description provided in the dataset description.
 DATASET DESCRIPTION:{description}
@@ -40,5 +73,4 @@ Reflection:[[reflection]]
 
 
 The structure and form of the improved example should be SAME with the original example; DO NOT make significant changes to the existing example. Directly output your improved Data Entry as the following JSON format:'''
-    
-}
+})
