@@ -2,6 +2,9 @@ api_settings:
   model_type: "gpt"
   api_key:
   embedding_model: "text-embedding-3-large"
+  use_azure: false
+  api_base: null
+  azure_version: null
 
   
 
@@ -15,8 +18,6 @@ generation_settings:
   label_ratio: null
   fixed_example: true
   label_constraint: false
-
-  
 
 dataset_configuration:
   dataset_description: "It is a dataset of high quality linguistically diverse grade school math word problems created by human problem writers. These problems take between 2 and 8 steps to solve, and solutions primarily involve performing a sequence of elementary calculations using basic arithmetic operations (+ − ×÷) to reach the final answer. A bright middle school student should be able to solve every problem. It can be used for multi-step mathematical reasoning. Each problem should only have one question and one correct answer."

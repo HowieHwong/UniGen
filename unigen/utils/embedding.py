@@ -10,21 +10,22 @@ class EmbeddingProcessor:
         self.config = config
 
     @staticmethod
-    def get_embedding(string, config, azure=False):
+    def get_embedding(string, config):
+        azure = config['api_setting']['use_azure']
         if azure:
-            settings = config["generation_settings"]
+            settings = config["api_setting"]
             client = AzureOpenAI(
-                azure_endpoint=settings["azure_base_url"],
-                api_key=settings['openai_azure_api'],
+                azure_endpoint=settings["api_base"],
+                api_key=settings['api_key'],
                 api_version=settings["azure_version"],
             )
             response = client.embeddings.create(
-                model=settings["azure_embedding_engine"],
+                model=settings["embedding_model"],
                 input=string
             )
         else:
-            settings = config['generation_settings']
-            client = OpenAI(api_key=settings['openai_api'])
+            settings = config['spi_settings']
+            client = OpenAI(api_key=settings['api_key'])
             response = client.embeddings.create(
                 model=settings['embedding_model'],
                 input=string

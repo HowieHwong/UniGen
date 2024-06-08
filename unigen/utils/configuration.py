@@ -3,7 +3,6 @@ import os
 import yaml
 
 class ConfigManager:
-    # 初始时，配置为空
     _config = None
 
     @staticmethod
@@ -18,7 +17,6 @@ class ConfigManager:
 
     @classmethod
     def get_config_dict(cls):
-        # 确保配置已加载
         if cls._config is None:
             cls.load_config()
         return cls._config
@@ -27,13 +25,13 @@ class ConfigManager:
     def set_config_dict(cls, dict):
         cls._config = dict
 
-# # 示例使用
-# if __name__ == "__main__":
-#     ConfigManager.load_config()
-#     config = ConfigManager.get_config_dict()
+# 示例使用
+if __name__ == "__main__":
+    ConfigManager.load_config()
+    config = ConfigManager.get_config_dict()
     
-#     # 打印配置以验证读取是否成功
-#     print(config)
+    # 打印配置以验证读取是否成功
+    print(config)
 
 
 

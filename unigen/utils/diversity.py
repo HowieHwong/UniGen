@@ -6,6 +6,9 @@ from tqdm import tqdm
 from sklearn.metrics.pairwise import euclidean_distances
 import embedding
 from file_process import load_json, save_json
+from configuration import ConfigManager
+ConfigManager.load_config()
+config = ConfigManager.get_config_dict()
 
 
 def get_single_item_embedding(item):
