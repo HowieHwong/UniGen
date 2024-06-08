@@ -1,12 +1,11 @@
 import numpy as np
 from sklearn.cluster import KMeans, AgglomerativeClustering, DBSCAN
+from sklearn.metrics.pairwise import cosine_similarity
+from itertools import combinations
 from openai import OpenAI,AzureOpenAI
 import random
 from utils import file_process
 import concurrent.futures
-from .configuration import ConfigManager
-ConfigManager.load_config()
-config = ConfigManager.get_config_dict()
 
 
 def get_embedding(string, config, azure=False):
@@ -38,23 +37,10 @@ def get_embedding(string, config, azure=False):
         return response.data[0].embedding
 
 
-from sklearn.metrics.pairwise import cosine_similarity
-import numpy as np
-
-from sklearn.metrics.pairwise import cosine_similarity
-from itertools import combinations
-
-
 
 def get_single_item_embedding(item,embedding_model):
-
-    #print("Get embedding: " + item["text"])
     item["embedding"]=get_embedding(item["text"],embedding_model)
-    
     return item
-
-
-
 
 def select_embeddings_with_auto_min_similarity(embeddings, n, embedding_key='embedding', start_similarity=0.0,decrement=0.05):
     embeddings_array = np.array([el[embedding_key] for el in embeddings])

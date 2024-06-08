@@ -2,16 +2,12 @@ from tenacity import retry, wait_random_exponential, stop_after_attempt
 from openai import OpenAI, AzureOpenAI
 from anthropic import Anthropic
 import traceback
-from .configuration import ConfigManager
-
-config = ConfigManager.get_config_dict()
 
 
 class ModelAPI:
-    def __init__(self, model_type='gpt', temperature=0.8):
+    def __init__(self,config, model_type='gpt', temperature=0.8):
         self.model_type = model_type.lower()
         self.temperature = temperature
-
         if self.model_type not in ['gpt', 'claude', 'llama3']:
             raise ValueError(f"Unsupported model type: {model_type}")
 
@@ -20,13 +16,13 @@ class ModelAPI:
         temperature = self.temperature
         try:
             if self.model_type.lower() == 'gpt':
-                self.api_key = config['api_settings']['openai_api']
+                self.api_key = self.config['api_settings']['openai_api']
                 return self.api_send_gpt4(text, model, message, azure, json_format, temperature)
             elif self.model_type.lower() == 'claude':
-                self.api_key = config['api_settings']['claude_api']
+                self.api_key = self.config['api_settings']['claude_api']
                 return self.api_send_claude(text, model, message, json_format, temperature)
             elif self.model_type.lower() == 'llama3':
-                self.api_key = config['api_settings']['deepinfra_api']
+                self.api_key = self.config['api_settings']['deepinfra_api']
                 return self.api_send_llama3(text, model, message, json_format, temperature)
             else:
                 raise ValueError(f"Unsupported model type: {self.model_type}")
@@ -75,16 +71,16 @@ class ModelAPI:
         return full_response
 
     def api_send_gpt4(self, string, model, message=None, azure=True, json_format=False, temperature=0.8):
-        azure = config["generation_settings"]["azure_openai"]
+        azure = self.config["generation_settings"]["azure_openai"]
         if message is None:
             message = [{"role": "user", "content": string}]
         response_format = {"type": "json_object"} if json_format else None
         print(temperature)
         if azure:
-            azure_endpoint = config["generation_settings"]["azure_base_url"]
-            api_key = config['api_configuration']['openai_azure_api']
-            api_version = config["generation_settings"]["azure_version"]
-            model = config["generation_settings"]["azure_generation_engine"]
+            azure_endpoint = self.config["generation_settings"]["azure_base_url"]
+            api_key = self.config['api_self.configuration']['openai_azure_api']
+            api_version = self.config["generation_settings"]["azure_version"]
+            model = self.config["generation_settings"]["azure_generation_engine"]
             print(f"Sending API request...{model}")
             client = AzureOpenAI(
                 azure_endpoint=azure_endpoint,
@@ -99,8 +95,8 @@ class ModelAPI:
                 response_format=response_format,
             )
         else:
-            model = config["generation_settings"]["openai_chat_model"]
-            base_url = config["generation_settings"]["base_url"]
+            model = self.config["generation_settings"]["openai_chat_model"]
+            base_url = self.config["generation_settings"]["base_url"]
             client = OpenAI(api_key=self.api_key,
                             #base_url=base_url,
                             )

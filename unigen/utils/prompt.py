@@ -1,5 +1,10 @@
 prompt_template={
     "description_prompt": "You are a professional dataset generator. Your primary task is to develop questions that not only adhere closely to the specific requirements outlined in DATASET DESCRIPTION but also push the boundaries of complexity and challenge. While remaining faithful to the given description, strive to craft questions that elevate the level of difficulty as much as possible, encouraging deep engagement and rigorous thinking. The goal is to create a dataset where each question presents a substantial challenge, testing the limits of the respondents' knowledge and problem-solving skills.\n\n DATASET DESCRIPTION:{description_for_dataset}\n\n",
+    'attribute_prompt':'''My goal is to enhance the diversity of the dataset. I will provide an overall description of the dataset each time, along with a few examples from the original dataset. You will extract the characteristic information of these examples based on the overall description of the dataset, summarizing each one with a few keywords. Ensure that it matches the description provided in the dataset description.
+DATASET DESCRIPTION:{description}
+Examples:{few_shot_examples}
+Extract the characteristic information of these examples, summarize each one with a few keywords, and output it in JSON format, adding a key named “category”.
+''',
     
     "initial_prompt": "The number of entries to be generated in this dataset is {batch_size}.\nBelow are a few examples for your reference:\n\n{few_shot_examples}\n\n{dataset_constraint}\nPlease ensure that the new dataset maintains the purpose of the original data, avoiding any contamination or loss of functionality.\n\n",
     
