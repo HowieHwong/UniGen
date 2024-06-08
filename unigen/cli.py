@@ -29,19 +29,15 @@ def load_config(yaml_path):
     return config
 
 def generation(config):
-    # 使用 config 执行生成操作
     print("Starting generation process with config:", config)
 
 def analysis(config):
-    # 使用 config 执行分析操作
     print("Starting analysis process with config:", config)
 
 def evaluation(config):
-    # 使用 config 执行评估操作
     print("Starting evaluation process with config:", config)
 
 def augmentation(config):
-    # 使用 config 执行增强操作
     print("Starting augmentation process with config:", config)
 
 def main():

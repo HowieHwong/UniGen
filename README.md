@@ -17,6 +17,7 @@ UniGen is an LLM-powered framework designed to generate diverse, accurate, and h
 - Diversity: We support `Attribute-Guided Generation`, `Diverse Example Selection for ICL`, and `Group Checking` to enhance data diversity.
 - Truthfulness: `Self-Evaluation`, `Code-Based Validation`, and `RAG-Based Validation` are equipped to ensure truthfulness.
 - Controllability: UniGen accepts user `constraints` to make generation more controllable.
+- Various Application: UniGen can be applied for `dynamic benchmark` or `data augmentation`.
 
 ## :bulb: Installation
 

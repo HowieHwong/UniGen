@@ -81,12 +81,13 @@ class UniGen:
             examples = data[:self.few_shot_num]
         else:
             embedding_path = 'embedding/{}_dataset_embedding.json'
+            Embedder = embedding.EmbeddingProcessor(config=self.efficiency_configuration)
             if not os.path.exists(embedding_path.format(self.dataset_name)):
-                embeddings = embedding.generate_dataset_embedding(data, self.embedding_model)
+                embeddings = Embedder.generate_dataset_embedding(data)
                 save_json(embeddings, embedding_path.format(self.dataset_name))
             else:
                 embeddings = load_json(embedding_path.format(self.dataset_name))
-            examples = embedding.cluster_embeddings(data, embeddings, num_clusters=self.few_shot_num)
+            examples = Embedder.cluster_embeddings(data, embeddings, num_clusters=self.few_shot_num)
         random.shuffle(examples)
         filtered_example = []
         for item in examples:
