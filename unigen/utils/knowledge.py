@@ -68,8 +68,38 @@ class NERProcessor:
             json.dump(data, file, ensure_ascii=False, indent=4)
 
 
+def load_entities(json_file_path):
+    """ Load entities from a given JSON file path. """
+    entities = set()
+    with open(json_file_path, 'r') as file:
+        data = json.load(file)
+        for item in data:
+            entity_list = item.get("entity list", {})
+            for entity_group in entity_list.values():
+                entities.update(entity_group)
+    return entities
+
+
+
+def calculate_overlapped_ratio(file1, file2):
+    # Load entities from both files
+    entities_file1 = load_entities(file1)
+    entities_file2 = load_entities(file2)
+
+    # Calculate the intersection of entities
+    intersection = entities_file1.intersection(entities_file2)
+
+    # Calculate the overlap ratio
+    overlap_ratio = len(intersection) / min(len(entities_file1), len(entities_file2)) if min(len(entities_file1), len(entities_file2)) > 0 else 0
+    print("Overlap ratio:", overlap_ratio)
+    return overlap_ratio
+
+
+
 if __name__ == '__main__':
-    input_filepath = ''
-    output_filepath = ''
     processor = NERProcessor()
-    processor.process_json_file(input_filepath, output_filepath)
+    file_list = ['original_file.json', 'new_file.json']
+    processor.process_json_file('original_file.json', 'original_output.json')
+    processor.process_json_file('new_file.json', 'new_output.json')
+    calculate_overlapped_ratio('original_output.json', 'new_output.json')
+
