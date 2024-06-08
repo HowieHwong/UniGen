@@ -38,7 +38,7 @@ warnings.filterwarnings("ignore")
 DEBUG = True
 
 
-class DyGenset:
+class UniGen:
     def __init__(self,
                  config,
                  **kwargs):
@@ -185,6 +185,7 @@ class DyGenset:
         generated_dataset = list()
         base_data = self.preprocess_input(dataset_path)
 
+<<<<<<< HEAD:unigen/generation.py
         total_feedback = ""
         if dataset_config["efficiency_configuration"]["learn_from_human_feedback"]:
             if config["generation_settings"]["few_shot_num"] > 0:
@@ -223,6 +224,8 @@ class DyGenset:
             print(total_feedback)
             print("----------------------------------------------------------------------------", "GREEN")
 
+=======
+>>>>>>> e562c0ebd62de66e6e2655fdbd8102bf788297be:unigen/UniGen.py
         @retry(wait=wait_random_exponential(min=5, max=20), stop=stop_after_attempt(3))
         def batch_generation(batch_id, queue):
             try:
@@ -248,8 +251,6 @@ class DyGenset:
                                                                                few_shot_examples=few_shot_des)
                 epoch_prompt = description_prompt + initial_prompt
 
-                if total_feedback:
-                    epoch_prompt += total_feedback
                 if self.add_attribute:
                     examples = attribute.get_attribute(examples, dataset_description=self.dataset_description)
                     self.with_attr = True
@@ -292,12 +293,12 @@ class DyGenset:
                                 batch_data[batch_data.index(item)] = truthfulness_eval_res
 
                 save_json(batch_data,
-                                       f'/media/ssd/wtm/DyGenset/test_dataset/TruthfulQA/temper_case/{batch_id}_{self.temperature}.json')
+                                       f'/media/ssd/wtm/UniGen/test_dataset/TruthfulQA/temper_case/{batch_id}_{self.temperature}.json')
                 queue.put(batch_data)
                 return batch_data
             except Exception as e:
                 print(traceback.format_exc())
-                # print(f"Error in running DyGenset: Epoch{_}")
+                # print(f"Error in running UniGen: Epoch{_}")
                 return None
 
         total_batches = int(self.generation_number / self.batch_size)
@@ -362,7 +363,11 @@ def generation(config):
         f"test_dataset/{dataset_name}/{dataset_name}_{model_type}_generated.json")
 
     print(f'generation_number: {generation_number}')
+<<<<<<< HEAD:unigen/generation.py
     generator = DyGenset(config,dataset_name=dataset_name,
+=======
+    generator = UniGen(dataset_name=dataset_name,
+>>>>>>> e562c0ebd62de66e6e2655fdbd8102bf788297be:unigen/UniGen.py
                          generation_number=generation_number,
                          few_shot_num=few_shot_num,
                          random_example=False)

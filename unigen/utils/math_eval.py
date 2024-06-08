@@ -2,7 +2,7 @@ import os
 import subprocess
 import tempfile
 from copy import deepcopy
-from utils import file_process,data_format
+import file_process,data_format
 from .IO import print
 from tenacity import retry, wait_random_exponential, stop_after_attempt
 from .prompt import prompt_template
@@ -35,13 +35,13 @@ def math_eval(example):
         if cnt != 0:  # not First attempt
             formatted_prompt += error_message
         response_json=data_format.get_res_data(formatted_prompt)
-        print("--------------------------Sample Information--------------------------", "GREEN")
+        print("*" * 15 + "Sample Information" + "*" * 15, "GREEN")
         print(example)
-        print("--------------------------Generated Code--------------------------", "GREEN")
+        print("*" * 15 + "Generated Code" + "*" * 15, "GREEN")
         print(response_json.get('Code'))
-        print("--------------------------Analysis---------------------------", "GREEN")
+        print("*" * 15 + "Analysis" + "*" * 15, "GREEN")
         print(response_json.get('Analysis'))
-        print("-------------------------------------------------------------------", "GREEN")
+        print("*" * 35, "GREEN")
 
         # Save the code attempt for potential inclusion in the next attempt's error message
         epoch_code = response_json.get('Code')
