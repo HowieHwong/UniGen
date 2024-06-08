@@ -39,7 +39,7 @@ def _get_wiki_content(keyword):
     :return: The content of the Wikipedia page.
     """
     try:
-        wiki = wikipediaapi.Wikipedia('Bias/0.0 (tangjingyu0621@gmail.com)','en')
+        wiki = wikipediaapi.Wikipedia('Bias/0.0 (xxxx@gmail.com)','en')
         page = wiki.page(keyword)
         return page.text
     except Exception as e:
