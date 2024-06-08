@@ -20,7 +20,25 @@ Extract the characteristic information of these examples, summarize each one wit
     
     "math_eval": """I will give you a piece of text containing some mathematical information. It requires precise calculations to verify its correctness. Therefore, please translate it into a segment of Python code to represent the mathematical calculation process mentioned in the text, and then compute the final answer and direct print the answer number. Format your output in a JSON format with key 'Code' for the executable code and 'Analysis' to explain how you transfer the sample into code. The input sample is: {expression}.""",
     "math_eval_compare": "I will provide you with two answers, and I need you to help me determine whether these two answers are semantically equivalent. For example, '2' and 'two' are considered equivalent. If they are equivalent, please reply with 'True'. If they are not equivalent, reply with 'False'. Note that you should only reply with one word (either 'True' or 'False') and not include any other content. Here is two response: '{response1}', '{response2}'.",
-    "feedback_prefix": "The following is human feedback on some of the generated samples and your generated samples need to refer to the suggestions in the human feedback: \n"
-     
+    "feedback_prefix": "The following is human feedback on some of the generated samples and your generated samples need to refer to the suggestions in the human feedback: \n",
+     'improve_examples_with_reflection': '''You are a professional dataset generation assistant.
+Your task is to create improved versions of the original example based on the reflection and ,few shot examples.
+
+DATASET DESCRIPTION:[[description]].
+
+[[few_shot_examples]]
+
+[[constraint]]
+
+Ensure that the improvements address the identified weaknesses and enhance the strengths.
+
+
+Original Data Entry:
+[[original_example]]
+
+Reflection:[[reflection]]
+
+
+The structure and form of the improved example should be SAME with the original example; DO NOT make significant changes to the existing example. Directly output your improved Data Entry as the following JSON format:'''
     
 }
