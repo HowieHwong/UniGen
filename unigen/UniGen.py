@@ -304,23 +304,13 @@ class UniGen:
 def generation(config):
     dataset_name = config['dataset_name']
     generation_number = config['generation_number']
-    few_shot_num = config['few_shot_num']
-    model_type = config['model_type']
-    temperature = config['temperature']
-    
-    data_file_path = f"test_dataset/{dataset_name}/{dataset_name}.json"
-    generated_data_file_path = check_and_rename_file(
-        f"test_dataset/{dataset_name}/{dataset_name}_{model_type}_generated.json")
+    data_file_path = config['data_file_path']
+    generated_data_file_path = config['generated_file']
 
-    print(f'generation_number: {generation_number}')
-<<<<<<< HEAD:unigen/generation.py
-    generator = DyGenset(config,dataset_name=dataset_name,
-=======
-    generator = UniGen(dataset_name=dataset_name,
->>>>>>> e562c0ebd62de66e6e2655fdbd8102bf788297be:unigen/UniGen.py
-                         generation_number=generation_number,
-                         few_shot_num=few_shot_num,
-                         random_example=False)
+    data_file_path = f"test_dataset/{dataset_name}/{dataset_name}.json"
+    # generated_data_file_path = check_and_rename_file(
+    #     f"test_dataset/{dataset_name}/{dataset_name}_{model_type}_generated.json")
+    generator = UniGen(config)
     generator.run(data_file_path, generated_data_file_path)
 
 
