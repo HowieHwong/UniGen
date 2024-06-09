@@ -25,12 +25,8 @@ def get_res_data(prompt):
 
 @retry(wait=wait_random_exponential(min=2, max=8), stop=stop_after_attempt(8))
 def get_res_str(prompt):
-    model_type,temperature=config["model_type"],config['temperature']
-    print(model_type,temperature)
-    LLM_model=ModelAPI(model_type=model_type,
-                       temperature=temperature)
+    LLM_model=ModelAPI()
     response = LLM_model.get_res(prompt,)
-
     return response
     
 
@@ -94,7 +90,7 @@ def create_data_entries(with_label, num_elements, attribute_key=None, extra_info
         return formatted_output
     else:
         return json_output
-data_format_str
+
 
 def prompt_format(s, **replacements):
     for symbol, content in replacements.items():
