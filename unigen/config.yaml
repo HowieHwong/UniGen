@@ -14,6 +14,7 @@ generation_settings:
   generation_number: 100
   batch_size: 5
   few_shot_num: 5
+  random_example: False
   max_worker: 2
   label_ratio: null
   fixed_example: true

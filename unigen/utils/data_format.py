@@ -74,23 +74,27 @@ def clean_json_string(json_string):
     return json_string
 
 
-def data_entry_format(with_label, el_num, attr_key=None, extra_info_keys=None):
-    dict_list = []
-    for i in range(el_num):
-        el = {'id': i, 'text': ''}
+
+
+def create_data_entries(with_label, num_elements, attribute_key=None, extra_info_keys=None, prompt_template=None):
+    data_entries = []
+    for index in range(num_elements):
+        entry = {'id': index, 'text': ''}
         if with_label:
-            el['label'] = ''
-        if attr_key is not None:
-            el[attr_key] = ''
+            entry['label'] = ''
+        if attribute_key is not None:
+            entry[attribute_key] = ''
         if extra_info_keys:
             for key in extra_info_keys:
-                el[key] = ''
-        dict_list.append(el)
-    json_output = json.dumps(dict_list, indent=4)  
-    data_format_str = prompt_template['return_format_prompt'].format(batch_size=el_num, data_format=json_output)
-    return data_format_str
-
-
+                entry[key] = ''
+        data_entries.append(entry)
+    json_output = json.dumps(data_entries, indent=4)
+    if prompt_template and 'return_format_prompt' in prompt_template:
+        formatted_output = prompt_template['return_format_prompt'].format(batch_size=num_elements, data_format=json_output)
+        return formatted_output
+    else:
+        return json_output
+data_format_str
 
 def prompt_format(s, **replacements):
     for symbol, content in replacements.items():
@@ -105,7 +109,7 @@ def prompt_format(s, **replacements):
 
 
 
-
+## JSON PARSER
 
 JSON_LOADS_STRICT=False
 
