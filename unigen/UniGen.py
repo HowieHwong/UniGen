@@ -17,7 +17,6 @@ from queue import Queue
 import warnings
 import traceback
 from dataclasses import dataclass, field
-from simple_parsing import ArgumentParser
 from concurrent.futures import ThreadPoolExecutor
 from threading import Thread
 from datetime import datetime
