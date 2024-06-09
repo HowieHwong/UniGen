@@ -36,7 +36,7 @@ class UniGen:
         
         self.efficiency_configuration=config['efficiency_configuration']
         pprint(dataset_config)
-        
+        self.config=config
         generation_config=config['generation_settings']
         self.batch_size = generation_config['batch_size']
         self.random_example = generation_config['random_example']
@@ -79,7 +79,7 @@ class UniGen:
             examples = data[:self.few_shot_num]
         else:
             embedding_path = 'embedding/{}_dataset_embedding.json'
-            Embedder = embedding.EmbeddingProcessor(config=self.efficiency_configuration)
+            Embedder = embedding.EmbeddingProcessor(config=self.config)
             if not os.path.exists(embedding_path.format(self.dataset_name)):
                 embeddings = Embedder.generate_dataset_embedding(data)
                 save_json(embeddings, embedding_path.format(self.dataset_name))

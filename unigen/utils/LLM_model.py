@@ -4,8 +4,6 @@ from anthropic import Anthropic
 import traceback
 
 
-
-
 class ModelAPI:
     def __init__(self,config, model_type='gpt', temperature=0.8):
 

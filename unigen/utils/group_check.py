@@ -8,21 +8,20 @@ import json,random,os
 import os,random
 from tqdm import tqdm
 import numpy as np
-
 from concurrent.futures import ThreadPoolExecutor
 from typing import Dict, Any
 from collections import defaultdict
 
+from configuration import ConfigManager
+ConfigManager.load_config()
+config = ConfigManager.get_config_dict()
 
 
-
-
-def get_single_item_embedding(item):
-    item["embedding"]=get_embedding(item["text"],'text-embedding-3-large') 
-    return item
 
 
 def get_embedding_matrix(data_path):
+    Embedder = embedding.EmbeddingProcessor(config=config)
+    get_single_item_embedding=Embedder.get_single_item_embedding
     # Check if the path ends with "_embedding.json", directly load if it exists.
     if data_path.endswith("_embedding.json"):
         embeddings = load_json(data_path)
