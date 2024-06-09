@@ -4,15 +4,19 @@ from anthropic import Anthropic
 import traceback
 
 
+
+
 class ModelAPI:
     def __init__(self,config, model_type='gpt', temperature=0.8):
-        self.model_type = model_type.lower()
-        self.temperature = temperature
+
+        self.config=config
+        self.model_type = config['api_settings']['model_type'].lower()
+        self.temperature = config['generation_settings']['temperature']
         if self.model_type not in ['gpt', 'claude', 'llama3']:
             raise ValueError(f"Unsupported model type: {model_type}")
 
     @retry(wait=wait_random_exponential(min=1, max=10), stop=stop_after_attempt(10))
-    def get_res(self, text, model=None, message=None, azure=True, json_format=False, temperature=0.8):
+    def get_res(self, text, model=None, message=None, azure=True, json_format=False, ):
         temperature = self.temperature
         try:
             if self.model_type.lower() == 'gpt':
