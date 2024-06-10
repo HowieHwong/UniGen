@@ -6,7 +6,7 @@ api_settings:
   api_base: null
   azure_version: null
 
-  
+
 
 
 generation_settings:
@@ -35,3 +35,4 @@ efficiency_configuration:
   self_reflection: true
   math_eval: true
   truthfulness_eval: false
+
