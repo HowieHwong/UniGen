@@ -17,7 +17,6 @@ def get_res_data(prompt):
     clear_response = clean_json_string(response)
     try:
         data=clean_json(clear_response)
-        #data = json.loads(clear_response)
         return data
     except Exception as e:
         print(clear_response,color="GREEN")

@@ -261,3 +261,24 @@ def generation(config):
     data_file_path = f"test_dataset/{dataset_name}/{dataset_name}.json"
     generator = UniGen(config)
     generator.run(data_file_path, generated_data_file_path)
+
+
+def eval_generation(config):
+    dataset_name = config['dataset_name']
+    generation_number = config['generation_number']
+    data_file_path = config['data_file_path']
+    generated_data_file_path = config['generated_file']
+
+    data_file_path = f"test_dataset/{dataset_name}/{dataset_name}.json"
+    generator = UniGen(config)
+    generator.run(data_file_path, generated_data_file_path)
+    
+def eval_generation(config):
+    dataset_name = config['dataset_name']
+    generation_number = config['generation_number']
+    data_file_path = config['data_file_path']
+    generated_data_file_path = config['generated_file']
+
+    data_file_path = f"test_dataset/{dataset_name}/{dataset_name}.json"
+    generator = UniGen(config)
+    generator.run(data_file_path, generated_data_file_path)
