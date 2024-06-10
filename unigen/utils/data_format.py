@@ -17,7 +17,6 @@ def get_res_data(prompt):
     clear_response = clean_json_string(response)
     try:
         data=clean_json(clear_response)
-        #data = json.loads(clear_response)
         return data
     except Exception as e:
         print(clear_response,color="GREEN")
@@ -25,12 +24,8 @@ def get_res_data(prompt):
 
 @retry(wait=wait_random_exponential(min=2, max=8), stop=stop_after_attempt(8))
 def get_res_str(prompt):
-    model_type,temperature=config["model_type"],config['temperature']
-    print(model_type,temperature)
-    LLM_model=ModelAPI(model_type=model_type,
-                       temperature=temperature)
+    LLM_model=ModelAPI()
     response = LLM_model.get_res(prompt,)
-
     return response
     
 
@@ -74,22 +69,26 @@ def clean_json_string(json_string):
     return json_string
 
 
-def data_entry_format(with_label, el_num, attr_key=None, extra_info_keys=None):
-    dict_list = []
-    for i in range(el_num):
-        el = {'id': i, 'text': ''}
+
+
+def create_data_entries(with_label, num_elements, attribute_key=None, extra_info_keys=None, prompt_template=None):
+    data_entries = []
+    for index in range(num_elements):
+        entry = {'id': index, 'text': ''}
         if with_label:
-            el['label'] = ''
-        if attr_key is not None:
-            el[attr_key] = ''
+            entry['label'] = ''
+        if attribute_key is not None:
+            entry[attribute_key] = ''
         if extra_info_keys:
             for key in extra_info_keys:
-                el[key] = ''
-        dict_list.append(el)
-    json_output = json.dumps(dict_list, indent=4)  
-    data_format_str = prompt_template['return_format_prompt'].format(batch_size=el_num, data_format=json_output)
-    return data_format_str
-
+                entry[key] = ''
+        data_entries.append(entry)
+    json_output = json.dumps(data_entries, indent=4)
+    if prompt_template and 'return_format_prompt' in prompt_template:
+        formatted_output = prompt_template['return_format_prompt'].format(batch_size=num_elements, data_format=json_output)
+        return formatted_output
+    else:
+        return json_output
 
 
 def prompt_format(s, **replacements):
@@ -105,7 +104,7 @@ def prompt_format(s, **replacements):
 
 
 
-
+## JSON PARSER
 
 JSON_LOADS_STRICT=False
 

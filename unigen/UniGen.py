@@ -7,7 +7,7 @@ import random
 import tiktoken
 from tqdm import tqdm
 from pprint import pprint
-from utils import attribute,embedding, data_format, RAG_eval, math_eval, self_reflection
+from utils import attribute,embedding,data_format, RAG_eval, math_eval, self_reflection
 from utils.configuration import ConfigManager
 from utils.IO import print, input
 from utils.file_process import save_json,load_json,check_and_rename_file
@@ -17,11 +17,11 @@ from queue import Queue
 import warnings
 import traceback
 from dataclasses import dataclass, field
-from simple_parsing import ArgumentParser
 from concurrent.futures import ThreadPoolExecutor
 from threading import Thread
 from datetime import datetime
 from tenacity import retry, wait_random_exponential, stop_after_attempt
+from .prompt import prompt_template
 
 warnings.filterwarnings("ignore")
 
@@ -33,31 +33,29 @@ class UniGen:
                  config,
                  **kwargs):
 
-        dataset_config = config['dataset_configuration']
+        
         self.efficiency_configuration=config['efficiency_configuration']
         pprint(dataset_config)
-        dataset_description = dataset_config['dataset_configuration']['dataset_description']
-        self.batch_size = config['generation_settings']['batch_size']
-        self.few_shot_num = config['generation_settings']['few_shot_num']
-        self.generation_number =config['generation_settings']['generation_number']
-        self.dataset_description = dataset_description
-        self.constraints=dataset_config["dataset_configuration"]["dataset_constraint"]
-        self.dataset_name = config["dataset_configuration"]["dataset_name"]
-        self.temperature = config['generation_settings']['temperature']
-        self.random_example = dataset_config['dataset_configuration']['with_label']
-        self.with_label = dataset_config['dataset_configuration']['with_label']
-        self.with_attribute = dataset_config['dataset_configuration']['with_attribute']
-        self.add_attribute = dataset_config['dataset_configuration']['add_attribute']
-        self.extra_info_keys = dataset_config['dataset_configuration'].get('extra_info_keys', [])
-        self.max_worker = config['generation_settings']['max_worker']
-        self.prompt_template = config["prompt"]
-        self.attr_key = dataset_config['dataset_configuration']['attribute_key'] if self.with_attribute or self.add_attribute else None
-
-    def initialize_prompt(self):
-        initial_prompt = self.prompt_template["initial_prompt"]
-        initial_prompt = initial_prompt.replace("[[BATCH_SIZE]]", self.batch_size)
-        prompt = initial_prompt + self.dataset_description + self.dataset_constraint
-        return prompt
+        self.config=config
+        generation_config=config['generation_settings']
+        self.batch_size = generation_config['batch_size']
+        self.random_example = generation_config['random_example']
+        self.few_shot_num = generation_config['few_shot_num']
+        self.generation_number =generation_config['generation_number']
+        self.max_worker = generation_config['max_worker']
+        self.temperature = generation_config['temperature']
+        
+        dataset_config = config['dataset_configuration']
+        self.dataset_name = dataset_config["dataset_name"]
+        self.dataset_description = dataset_config['dataset_description']
+        self.constraints=dataset_config["dataset_constraint"]
+        
+        self.with_label = dataset_config['with_label']
+        self.with_attribute = dataset_config['with_attribute']
+        self.add_attribute = dataset_config['add_attribute']
+        self.attribute_key = dataset_config['attribute_key'] if self.with_attribute or self.add_attribute else None
+        self.extra_info_keys = dataset_config.get('extra_info_keys', [])
+        
 
     def preprocess_input(self, file_path):
         data=load_json(file_path)
@@ -81,7 +79,7 @@ class UniGen:
             examples = data[:self.few_shot_num]
         else:
             embedding_path = 'embedding/{}_dataset_embedding.json'
-            Embedder = embedding.EmbeddingProcessor(config=self.efficiency_configuration)
+            Embedder = embedding.EmbeddingProcessor(config=self.config)
             if not os.path.exists(embedding_path.format(self.dataset_name)):
                 embeddings = Embedder.generate_dataset_embedding(data)
                 save_json(embeddings, embedding_path.format(self.dataset_name))
@@ -103,11 +101,10 @@ class UniGen:
         return json_output
 
     def add_constraints(self, constraints):
-        constraints_text = self.prompt_template["constraints_prefix"]
-
+        constraints_text = prompt_template["constraints_prefix"]
         for i, constraint in enumerate(constraints, 1):
             constraints_text += f"{i}. {constraint}\n"
-        constraints_text += self.prompt_template["constraints_suffix"]
+        constraints_text += prompt_template["constraints_suffix"]
         return constraints_text
 
     def learn_from_human_feedback(self, examples):
@@ -143,20 +140,6 @@ class UniGen:
         num_tokens = len(enc.encode(text))
         return num_tokens
 
-    def label_constrain(self, raw_data, label_ratio):
-        assert isinstance(raw_data, list)
-        assert isinstance(label_ratio, dict)
-        return_data = []
-        for k, v in label_ratio.items():
-            k_label_data = [el for el in raw_data if el['label'] == k]
-            if v > len(k_label_data):
-                raise ValueError(f"label {k} needs {v} examples, but only {len(k_label_data)} examples in dataset")
-            k_label_data = random.sample(k_label_data, v)
-            return_data.extend(k_label_data)
-        return return_data
-
-    def diversity_setting(self):
-        pass
 
     def run(self, dataset_path, generated_data_file_path):
         assert self.generation_number % self.batch_size == 0, "generation_number must be divisible by batch_size"
@@ -175,20 +158,20 @@ class UniGen:
                     constraint_des = self.add_constraints(self.constraints)
                 else:
                     constraint_des = ""
-                description_prompt = self.prompt_template["description_prompt"].format(
+                description_prompt = prompt_template["description_prompt"].format(
                     description_for_dataset=self.dataset_description,
                 )
-                initial_prompt = self.prompt_template["initial_prompt"].format(batch_size=self.batch_size,
+                initial_prompt = prompt_template["initial_prompt"].format(batch_size=self.batch_size,
                                                                                dataset_constraint=constraint_des,
                                                                                few_shot_examples=few_shot_des)
                 epoch_prompt = description_prompt + initial_prompt
 
-                if self.add_attribute:
+                if self.add_attribute and not self.with_attribute:
                     examples = attribute.get_attribute(examples, dataset_description=self.dataset_description)
                     self.with_attribute = True
                 if self.with_attribute:
                     epoch_prompt += attribute.add_attributes(examples=examples, attribute_key=self.attribute_key, attr=None)
-                epoch_prompt += data_format.data_entry_format(el_num=self.batch_size, with_label=self.with_label,
+                epoch_prompt += data_format.create_data_entries(num_elements=self.batch_size, with_label=self.with_label,
                                                                 attribute_key=self.attribute_key)
                 res_data = data_format.get_res_data(epoch_prompt)
                 epoch_data_item = data_format.extract_data_item(res_data)
@@ -251,7 +234,7 @@ class UniGen:
         all_data = []
 
         def save_data_to_file(queue):
-            print(f"Data save path:{generated_data_file_path}\n\n\n")
+            print(f"Data save path:{generated_data_file_path}\n\n")
             while True:
                 data = queue.get() 
                 if data == "DONE":
@@ -280,4 +263,22 @@ def generation(config):
     generator.run(data_file_path, generated_data_file_path)
 
 
+def eval_generation(config):
+    dataset_name = config['dataset_name']
+    generation_number = config['generation_number']
+    data_file_path = config['data_file_path']
+    generated_data_file_path = config['generated_file']
 
+    data_file_path = f"test_dataset/{dataset_name}/{dataset_name}.json"
+    generator = UniGen(config)
+    generator.run(data_file_path, generated_data_file_path)
+    
+def eval_generation(config):
+    dataset_name = config['dataset_name']
+    generation_number = config['generation_number']
+    data_file_path = config['data_file_path']
+    generated_data_file_path = config['generated_file']
+
+    data_file_path = f"test_dataset/{dataset_name}/{dataset_name}.json"
+    generator = UniGen(config)
+    generator.run(data_file_path, generated_data_file_path)
