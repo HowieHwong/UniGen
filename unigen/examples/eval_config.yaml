@@ -1,0 +1,27 @@
+api_settings:
+  model_type: "gpt"
+  api_key:
+  embedding_model: "text-embedding-3-large"
+  use_azure: false
+  api_base: null
+  azure_version: null
+
+generation_settings:
+  temperature: 0.8
+  generation_number: 100
+  batch_size: 5
+  few_shot_num: 5
+  random_example: False
+  max_worker: 2
+  label_ratio: null
+  fixed_example: true
+  label_constraint: false
+
+models:
+  - gpt-4
+
+base_dir: "eval_dataset"
+
+tasks_files:
+  MCQ:
+    - 'metatool-thought_gen_vallina1.json'
