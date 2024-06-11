@@ -35,7 +35,7 @@ class UniGen:
 
         
         self.efficiency_configuration=config['efficiency_configuration']
-        pprint(dataset_config)
+        print(dataset_config)
         self.config=config
         generation_config=config['generation_settings']
         self.batch_size = generation_config['batch_size']

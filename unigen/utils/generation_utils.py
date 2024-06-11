@@ -6,13 +6,14 @@ from fastchat.model import load_model, get_conversation_template
 from openai import OpenAI,AzureOpenAI
 from tenacity import retry, wait_random_exponential, stop_after_attempt
 import requests
-import generation_config
 import replicate
+from file_process import load_yaml
 
-# Load model information from configuration
+
+generation_config = load_yaml("../examplesgeneration_config.yaml")
 model_info = generation_config.model_info
-online_model_list = model_info['online_model']
-model_mapping = model_info['model_mapping']
+online_model_list = model_info.online_model
+model_mapping = model_info.model_mapping
 rev_model_mapping = {value: key for key, value in model_mapping.items()}
 
 # Define safety settings to allow harmful content generation
