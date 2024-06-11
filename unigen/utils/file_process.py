@@ -14,7 +14,7 @@ def save_json(data, file_path):
         json.dump(data, f, ensure_ascii=False, indent=4)
 
 
-def load_yaml(data, file_path):
+def load_yaml(file_path):
     with open(file_path, 'r') as file:
         config = yaml.safe_load(file)
     return config
