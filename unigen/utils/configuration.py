@@ -50,12 +50,8 @@ class ConfigManager:
 if __name__ == "__main__":
     ConfigManager.load_config()
     config = ConfigManager.get_config_dict()
-    
-    # 加载并打印 description.json 的内容
     ConfigManager.load_description()
     description = ConfigManager.get_description()
-    
-    # 打印配置和描述以验证读取是否成功
     print("Config:", config)
     print("Description:", description)
     

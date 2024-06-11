@@ -6,9 +6,6 @@ api_settings:
   api_base: null
   azure_version: null
 
-  
-
-
 generation_settings:
   temperature: 0.8
   generation_number: 100
