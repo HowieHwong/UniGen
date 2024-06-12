@@ -21,6 +21,7 @@ class LLMGeneration:
                  test_type,
                  data_path,
                  model_path,
+                 config,
                  online_model=False,
                  use_deepinfra=False,
                  use_replicate=False,
@@ -33,6 +34,7 @@ class LLMGeneration:
         self.model_path = model_path
         self.test_type = test_type
         self.data_path = data_path
+        self.config = config
         self.online_model = online_model
         self.temperature = 0
         self.repetition_penalty = repetition_penalty
@@ -194,7 +196,7 @@ class LLMGeneration:
 
 
     def run_data(self, model_name, model, tokenizer):
-        file_config =  {}
+        file_config =  self.config.task_files.MCQ
         self._run_task(model_name, model, tokenizer, self.data_path, file_config)
 
     def _run_single_test(self):

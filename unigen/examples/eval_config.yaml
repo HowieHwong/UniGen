@@ -6,6 +6,7 @@ api_settings:
   api_base: null
   azure_version: null
 
+
 generation_settings:
   temperature: 0.8
   generation_number: 100
@@ -118,4 +119,4 @@ base_dir: "eval_dataset"
 
 tasks_files:
   MCQ:
-    - 'metatool-thought_gen_vallina1.json'
+    'metatool-thought_gen_vallina1.json': 0
