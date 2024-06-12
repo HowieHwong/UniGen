@@ -13,9 +13,7 @@ generation_setting:
 
 tasks_files:
   MCQ:
-    'metatool-thought_gen_vallina1.json': 0
-
-
+    'metatool-thought_gen_vallina1.json': 0.0
 
 api_settings:
   model_type: "gpt"

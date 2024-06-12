@@ -10,7 +10,6 @@ from tqdm import tqdm
 import urllib3
 import traceback
 import file_process
-import configuration
 
 load_dotenv()
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)

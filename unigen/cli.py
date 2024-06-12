@@ -1,6 +1,3 @@
-import os
-import random
-import subprocess
 import sys
 from enum import Enum, unique
 import yaml
@@ -30,15 +27,16 @@ def load_config(yaml_path):
 
 def generation(config):
     print("Starting generation process with config:", config)
-    from utils import generation
-    Generator = generation.LLMGeneration(config)
-    Generator.generation_results()
+
 
 def analysis(config):
     print("Starting analysis process with config:", config)
 
 def evaluation(config):
     print("Starting evaluation process with config:", config)
+    from utils import generation
+    Generator = generation.LLMGeneration(config)
+    Generator.generation_results()
 
 def augmentation(config):
     print("Starting augmentation process with config:", config)
