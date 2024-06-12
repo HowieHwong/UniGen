@@ -1,3 +1,22 @@
+generation_setting:
+  data_path: null
+  model_path: null
+  oneline_model: false
+  use_deepinfra: false
+  use_replicate: false
+  repetition_penalty: 1.0
+  num_gpus: 1
+  max_new_tokens: 512
+  debug: false
+  max_retries: 10
+  retry_interval: 3
+
+tasks_files:
+  MCQ:
+    'metatool-thought_gen_vallina1.json': 0
+
+
+
 api_settings:
   model_type: "gpt"
   api_key: null
@@ -5,18 +24,6 @@ api_settings:
   use_azure: false
   api_base: null
   azure_version: null
-
-
-generation_settings:
-  temperature: 0.8
-  generation_number: 100
-  batch_size: 5
-  few_shot_num: 5
-  random_example: False
-  max_worker: 2
-  label_ratio: null
-  fixed_example: true
-  label_constraint: false
 
 deepinfra_model:
   - llama2-70b
@@ -117,6 +124,3 @@ models:
 
 base_dir: "eval_dataset"
 
-tasks_files:
-  MCQ:
-    'metatool-thought_gen_vallina1.json': 0

@@ -18,35 +18,26 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 class LLMGeneration:
     def __init__(self,
-                 test_type,
-                 data_path,
-                 model_path,
-                 config,
-                 online_model=False,
-                 use_deepinfra=False,
-                 use_replicate=False,
-                 repetition_penalty=1.0,
-                 num_gpus=1,
-                 max_new_tokens=512,
-                 debug=False,
+                 config
                  ):
         self.model_name = ""
-        self.model_path = model_path
-        self.test_type = test_type
-        self.data_path = data_path
+        self.model_path = config.model_path
+        self.test_type = config.test_type
+        self.data_path = config.data_path
         self.config = config
-        self.online_model = online_model
-        self.temperature = 0
-        self.repetition_penalty = repetition_penalty
-        self.num_gpus = num_gpus
-        self.max_new_tokens = max_new_tokens
-        self.debug = debug
+        self.online_model = config.online_model
+        self.repetition_penalty = config.repetition_penalty
+        self.num_gpus = config.num_gpus
+        self.max_new_tokens = config.max_new_tokens
+        self.debug = config.debug
         self.online_model_list = get_models()[1]
         self.model_mapping = get_models()[0]
         self.device = 'cuda' if torch.cuda.is_available() else 'cpu'
-        self.use_replicate = use_replicate
-        self.use_deepinfra = use_deepinfra
+        self.use_replicate = config.use_replicate
+        self.use_deepinfra = config.use_deepinfra
         self.model_name = model_mapping.get(self.model_path, "")
+        self.max_retries = config.max_retries
+        self.retry_interval = config.retry_interval
 
     def _generation_hf(self, prompt, tokenizer, model, temperature):
         """
@@ -207,7 +198,7 @@ class LLMGeneration:
             :return: "OK" if successful, None otherwise.
             """
         model_name = self.model_name
-        print(f"Beginning generation with {self.test_type} evaluation at temperature {self.temperature}.")
+        # print(f"Beginning generation with {self.test_type} evaluation at temperature {self.temperature}.")
         print(f"Evaluation target model: {model_name}")
         if (model_name in self.online_model_list) and (
                 (self.online_model and self.use_replicate) or (self.online_model and self.use_deepinfra)):

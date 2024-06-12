@@ -30,6 +30,9 @@ def load_config(yaml_path):
 
 def generation(config):
     print("Starting generation process with config:", config)
+    from utils import generation
+    Generator = generation.LLMGeneration(config)
+    Generator.generation_results()
 
 def analysis(config):
     print("Starting analysis process with config:", config)
