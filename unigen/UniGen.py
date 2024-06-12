@@ -45,7 +45,7 @@ class UniGen:
         self.max_worker = generation_config['max_worker']
         self.temperature = generation_config['temperature']
         
-        dataset_config = config['dataset_configuration']
+        dataset_config = config['generation_hint']
         self.dataset_name = dataset_config["dataset_name"]
         self.dataset_description = dataset_config['dataset_description']
         self.constraints=dataset_config["dataset_constraint"]
