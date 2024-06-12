@@ -130,8 +130,6 @@ def concat_generated_datasets(datasets,gen_model,base_path):
             d=load_json_data(file_path)
             data.extend(d["dataset"])
 
-
-
         # Modify each element in the dataset
         for i, item in enumerate(data, start=1):
             item["unique_id"] = i  # Add unique_id

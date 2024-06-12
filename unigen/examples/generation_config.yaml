@@ -17,8 +17,10 @@ generation_settings:
   label_constraint: false
 
 generation_hint:
+
   dataset_description: "It is a dataset of high quality linguistically diverse grade school math word problems created by human problem writers. These problems take between 2 and 8 steps to solve, and solutions primarily involve performing a sequence of elementary calculations using basic arithmetic operations (+ − ×÷) to reach the final answer. A bright middle school student should be able to solve every problem. It can be used for multi-step mathematical reasoning. Each problem should only have one question and one correct answer."
   dataset_name: "GSM8K"
+  original_dataset_path: 
   dataset_constraint: []
   with_label: true
   with_attribute: false

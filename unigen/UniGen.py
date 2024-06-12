@@ -57,43 +57,40 @@ class UniGen:
         self.extra_info_keys = dataset_config.get('extra_info_keys', [])
         
 
-    def preprocess_input(self, file_path):
-        data=load_json(file_path)
-        assert isinstance(data, list)
-        if self.with_label:
-            assert 'text' in list(data[0].keys()) and 'label' in list(data[0].keys())
-        return data
-
-    def example_selection(self, data, random_=False):
+    # def check_original_dataset(self, file_path):
+    #     data=load_json(file_path)
+    #     assert isinstance(data, list)
+    #     if self.with_label:
+    #         assert 'text' in list(data[0].keys()) and 'label' in list(data[0].keys())
+    #     else:
+    #         assert 'text' in list(data[0].keys())
+    def _get_dataset_keys(self):
         keys = ['text', 'label'] + self.extra_info_keys
-        filtered_data = []
         if self.attribute_key:
-            keys = keys + [self.attribute_key, ]
-        for item in data:
-            filtered_item = {k: item[k] for k in keys if k in item}
-            filtered_data.append(filtered_item)
-        data = filtered_data
-        assert isinstance(data, list)
+            keys.append(self.attribute_key)
+        return keys
+    
+    
+    def example_selection(self, random_=False):
+        
+
+        Embedder = embedding.EmbeddingProcessor(config=self.config)
+        data = Embedder.preprocess_original_dataset()  
+        
+        keys=self._get_dataset_keys()
+        filtered_data = [{k: item[k] for k in keys if k in item} for item in data]
+        
         if random_:
             random.shuffle(data)
             examples = data[:self.few_shot_num]
+            filtered_examples = [{k: item[k] for k in keys if k in item} for item in examples]
         else:
-            embedding_path = 'embedding/{}_dataset_embedding.json'
-            Embedder = embedding.EmbeddingProcessor(config=self.config)
-            if not os.path.exists(embedding_path.format(self.dataset_name)):
-                embeddings = Embedder.generate_dataset_embedding(data)
-                save_json(embeddings, embedding_path.format(self.dataset_name))
-            else:
-                embeddings = load_json(embedding_path.format(self.dataset_name))
-            examples = Embedder.cluster_embeddings(data, embeddings, num_clusters=self.few_shot_num)
-        random.shuffle(examples)
-        filtered_example = []
-        for item in examples:
-            filtered_item = {k: item[k] for k in keys if k in item}
-            filtered_example.append(filtered_item)
+            examples = Embedder.cluster_embeddings(data, num_clusters=self.few_shot_num)
+            filtered_examples = [{k: item[k] for k in keys if k in item} for item in examples]
+            
+        random.shuffle(filtered_examples)
 
-        print(filtered_example[1].keys())
-        return filtered_example
+        return filtered_examples
 
     def few_shot_description(self, examples):
         random.shuffle(examples)
@@ -141,16 +138,15 @@ class UniGen:
         return num_tokens
 
 
-    def run(self, dataset_path, generated_data_file_path):
+    def run(self, generated_data_file_path):
         assert self.generation_number % self.batch_size == 0, "generation_number must be divisible by batch_size"
-        base_data = self.preprocess_input(dataset_path)
-
+        
         @retry(wait=wait_random_exponential(min=5, max=20), stop=stop_after_attempt(3))
         def batch_generation(batch_id, queue):
             try:
                 batch_data = []
                 if self.few_shot_num > 0:
-                    examples = self.example_selection(base_data, self.random_example)
+                    examples = self.example_selection(self.random_example)
                     few_shot_des = self.few_shot_description(examples)
                 else:
                      constraint_des = ""

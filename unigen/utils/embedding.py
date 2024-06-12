@@ -1,14 +1,28 @@
+import os
 import numpy as np
 from sklearn.cluster import KMeans, AgglomerativeClustering
 from sklearn.metrics.pairwise import cosine_similarity
 import random
 import concurrent.futures
 from openai import OpenAI, AzureOpenAI
+from .file_process import save_json,load_json
 
 class EmbeddingProcessor:
     def __init__(self, config):
         self.config = config
 
+    def preprocess_original_dataset(self,):
+        original_dataset_path=self.config['original_dataset_path']
+        base_path = os.path.splitext(original_dataset_path)[0]
+        embedding_path = f"{base_path}_dataset_embedding.json"
+        if not os.path.exists(embedding_path):
+            data=load_json('original_dataset_path')
+            embeddings = self.generate_dataset_embedding(data)
+            save_json(embeddings, embedding_path)
+        else:
+            embeddings = load_json(embedding_path)
+        return embeddings
+            
     @staticmethod
     def get_embedding(self,string,):
         azure = self.config['api_setting']['use_azure']
@@ -35,6 +49,12 @@ class EmbeddingProcessor:
     def get_single_item_embedding(self, item):
         item["embedding"] = EmbeddingProcessor.get_embedding(item["text"], self.config)
         return item
+    
+    
+    def generate_dataset_embedding(self, data):
+        with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
+            embeddings = list(filter(None, executor.map(self.get_single_item_embedding, data)))
+        return embeddings
 
     def select_embeddings_with_auto_min_similarity(self, embeddings, n, start_similarity=0.0, decrement=0.05):
         embeddings_array = np.array([el['embedding'] for el in embeddings])
@@ -60,10 +80,7 @@ class EmbeddingProcessor:
 
         raise ValueError("Unable to find enough embeddings with any minimum similarity threshold.")
 
-    def generate_dataset_embedding(self, data):
-        with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
-            embeddings = list(filter(None, executor.map(self.get_single_item_embedding, data)))
-        return embeddings
+
 
     def cluster_embeddings(self, data, embeddings, num_clusters, method='cosine_similarity'):
         embeddings_array = np.array([el['embedding'] for el in embeddings])
