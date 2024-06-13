@@ -1,5 +1,11 @@
 
-# UniGen: A Unified Framework for Textual Dataset Generation Using Large Language Models
+# UniGen: A Unified Framework for Textual Dataset Generation
+
+## :fire: News
+
+## :gem: What's UniGen?
+
+UniGen is an LLM-powered framework designed to generate diverse, accurate, and highly controllable text datasets.
 
 ## Table of Contents
 - 📑 [UniGen Dataset Generation](#unigen-dataset-generation)
