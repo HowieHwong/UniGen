@@ -2,10 +2,9 @@
 # UniGen: A Unified Framework for Textual Dataset Generation Using Large Language Models
 
 ## Table of Contents
-
-- 📑 [UniGen Generation](#UniGen Dataset Generation)
-- 💡 [LLM Evaluation](#LLM Evaluation)
-- ✨ [Data Augmentation Using LLaMA-Factory](#Data Augmentation Using LLaMA-Factory)
+- 📑 [UniGen Dataset Generation](#unigen-dataset-generation)
+- 💡 [LLM Evaluation](#llm-evaluation)
+- ✨ [Data Augmentation Using LLaMA-Factory](#data-augmentation-using-llama-factory)
 
 ## UniGen Dataset Generation
 This guide provides detailed instructions for generating a dataset using the UniGen tool with the specified configuration settings.
