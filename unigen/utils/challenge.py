@@ -82,16 +82,12 @@ def improve_el(el,description):
     original_data_entry = str({k: el['original'][k] for k in ['label', 'text'] if k in el['original']})
     
     prompt = prompt_template.replace('[D]', description).replace('[Q]', original_data_entry)
-    ###
     el_data=get_res_data(prompt)
-    ###
     applied_principles=el_data['applied_principles']
     print(applied_principles['principles'])
-
     prompt = prompt_improved_template.replace('[Original Data Entry]', str(original_data_entry)).replace('[Enhancements]', str(applied_principles))
-    ###
     el_data=get_res_data(prompt)
-    ###
+
     improved=el_data['improved_data_entry']
     
     

@@ -10,7 +10,7 @@ import replicate
 from .file_process import load_yaml
 
 
-generation_config = load_yaml("../examples/generation_config.yaml")
+generation_config = load_yaml("../model_config.yaml")
 model_info = generation_config.model_info
 online_model_list = model_info.online_model
 model_mapping = model_info.model_mapping
