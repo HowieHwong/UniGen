@@ -112,7 +112,6 @@ def concat_generated_datasets(datasets,gen_model,base_path):
         
             
         for file in file_list:
-            # 提取文件名中的数字
             start = file.find("(") + 1
             end = file.find(")")
             if start != -1 and end != -1:
@@ -149,40 +148,36 @@ def concat_generated_datasets(datasets,gen_model,base_path):
 import numpy as np
 
 def remove_similar_points(data,threshold):
-    n_points = data.shape[0]  # 数据点的数量
-    keep = np.ones(n_points, dtype=bool)  # 标记需要保留的点
-    similar_pairs = []  # 用于记录相似的数据点对
+    n_points = data.shape[0] 
+    keep = np.ones(n_points, dtype=bool) 
+    similar_pairs = [] 
 
     for i in range(n_points):
         for j in range(i + 1, n_points):
-            if keep[i] and keep[j]:  # 只有当两点都未被标记去除时，才计算它们的距离
-                dist = np.linalg.norm(data[i] - data[j])  # 计算点i和点j之间的欧式距离
+            if keep[i] and keep[j]:  
+                dist = np.linalg.norm(data[i] - data[j]) 
                 if dist < threshold:
-                    similar_pairs.append((i, j))  # 记录相似的数据点对
-                    keep[j] = False  # 标记其中一个点去除
+                    similar_pairs.append((i, j))  
+                    keep[j] = False  
 
-    # 返回被标记为保留的点和所有被认为相似的点对
     return keep,similar_pairs
 
 
 
 def remove_similar_points_by_cosine(data, threshold):
-    n_points = data.shape[0]  # 数据点的数量
-    keep = np.ones(n_points, dtype=bool)  # 标记需要保留的点
-    similar_pairs = []  # 用于记录相似的数据点对
-
-    # 归一化数据点，以确保每个向量的长度为1，这样只需计算点积即可得到余弦相似度
+    n_points = data.shape[0]
+    keep = np.ones(n_points, dtype=bool)
+    similar_pairs = []
     normalized_data = data / np.linalg.norm(data, axis=1, keepdims=True)
 
-    for i in range(n_points):
-        for j in range(i + 1, n_points):
-            if keep[i] and keep[j]:  # 只有当两点都未被标记去除时，才计算它们的相似度
-                cosine_similarity = np.dot(normalized_data[i], normalized_data[j])
+    for I in range(n_points):
+        for j in range(I + 1, n_points):
+            if keep[I] and keep[j]:
+                cosine_similarity = np.dot(normalized_data[I], normalized_data[j])
                 if cosine_similarity > threshold:
-                    similar_pairs.append((i, j))  # 记录相似的数据点对
-                    keep[j] = False  # 标记其中一个点去除
+                    similar_pairs.append((I, j))
+                    keep[j] = False
 
-    # 返回被标记为保留的点和所有被认为相似的点对
     return keep, similar_pairs
 
 

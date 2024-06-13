@@ -1,7 +1,7 @@
 import time
 import torch
 from fastchat.model import load_model, get_conversation_template
-from generation_utils import *
+from utils.generation_utils import *
 from dotenv import load_dotenv
 import os
 import json
@@ -9,7 +9,7 @@ import threading
 from tqdm import tqdm
 import urllib3
 import traceback
-import file_process
+import utils.file_process
 
 load_dotenv()
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)

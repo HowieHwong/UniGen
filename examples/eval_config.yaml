@@ -116,7 +116,6 @@ model_mapping:
   glm-4: glm-4
   glm-3-turbo: glm-3-turbo
 
-
 models:
   - gpt-4
 

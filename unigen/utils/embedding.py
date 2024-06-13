@@ -104,5 +104,3 @@ class EmbeddingProcessor:
         selected_indices = [embeddings.index(random_embeddings[label]) for label in random_embeddings]
 
         return [embeddings[idx]['text'] for idx in selected_indices]
-
-# Usage remains largely the same, but the `get_embedding` method can now be called independently of the class instance.
