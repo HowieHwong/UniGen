@@ -20,14 +20,16 @@ UniGen is an LLM-powered framework designed to generate diverse, accurate, and h
 - 💡 [LLM Evaluation](#llm-evaluation)
 - ✨ [Data Augmentation Using LLaMA-Factory](#data-augmentation-using-llama-factory)
 
-## UniGen Dataset Generation
+## :closed_book: Usage
+
+### UniGen Dataset Generation
 This guide provides detailed instructions for generating a dataset using the UniGen tool with the specified configuration settings.
 
-### Configuration Settings
+#### Configuration Settings
 
 Below are the configurations to be used for data generation:
 
-#### API Settings
+##### API Settings
 
 ```yaml
 api_settings:
@@ -46,7 +48,7 @@ api_settings:
 - `api_base`: Base URL for the API (if using Azure).
 - `azure_version`: Version of Azure to use (if applicable).
 
-#### Generation Settings
+##### Generation Settings
 
 ```yaml
 generation_settings:
@@ -65,7 +67,7 @@ generation_settings:
 - `random_example`: Boolean to indicate if random examples should be used.
 - `max_worker`: Number of worker threads to use for generation.
 
-#### Generation Hint
+##### Generation Hint
 
 ```yaml
 generation_hint:
@@ -88,7 +90,7 @@ generation_hint:
 - `add_attribute`: Boolean to indicate if new attributes should be added.
 - `extra_info_keys`: List of extra information keys.
 
-#### Efficiency Configuration
+##### Efficiency Configuration
 
 ```yaml
 efficiency_configuration:
@@ -107,38 +109,38 @@ efficiency_configuration:
 - `math_eval`: Boolean to indicate if mathematical evaluation should be used.
 - `truthfulness_eval`: Boolean to indicate if truthfulness evaluation should be used.
 
-### Step-by-Step Guide
+#### Step-by-Step Guide
 
-#### 1. Set Up API Key
+##### 1. Set Up API Key
 
 Replace `"YOUR_API_KEY_HERE"` in the `api_settings` with your actual API key.
 
-#### 2. Prepare the Original Dataset
+##### 2. Prepare the Original Dataset
 
 Ensure that the original dataset is available at the specified path in `original_dataset_path`.
 
-#### 3. Configure the Generation Settings
+##### 3. Configure the Generation Settings
 
 Adjust the `generation_settings` according to your specific needs. Ensure the values align with your data generation goals.
 
-#### 4. Define Generation Hints
+##### 4. Define Generation Hints
 
 Provide detailed information in `generation_hint` to guide the data generation process. This helps in creating high-quality and relevant data.
 
-#### 5. Efficiency Configuration
+##### 5. Efficiency Configuration
 
 Configure efficiency settings to optimize the data generation process. Enable or disable features like learning from mistakes and self-reflection based on your requirements.
 
-#### 6. Run Data Generation
+##### 6. Run Data Generation
 
 Use the configured settings to generate the dataset using the UniGen tool. Ensure all configurations are correctly set before starting the generation process.
 
 
-## LLM Evaluation
+### LLM Evaluation
 
 To assess the performance of LLMs on the generated dataset, follow these steps:
 
-### 1. Generate Output
+#### 1. Generate Output
 
 First, generate the output using the provided dataset. Execute the following command to generate the output for the LLMs on your dataset:
 
@@ -148,7 +150,7 @@ unigen-cli evaluation examples/eval_config.yaml
 
 You can customize your evaluation settings in the configuration file located at `examples/eval_generation_config.yaml`.
 
-### 2. Evaluate the Output
+#### 2. Evaluate the Output
 
 After generating the output, proceed to evaluate its performance. Use the following command to evaluate the generated output:
 
@@ -160,9 +162,9 @@ Customize your evaluation settings in the configuration file located at `example
 
 Specify the file to be evaluated in the `tasks_files` section of your configuration. Include the filename and the temperature setting for the LLM-judge process.
 
-## UniGen Augmentation Using LLaMA-Factory
+### UniGen Augmentation Using LLaMA-Factory
 
-### Requirements
+#### Requirements
 
 - [`LLaMA-Factory`](https://github.com/hiyouga/LLaMA-Factory) installed
 
@@ -172,7 +174,7 @@ cd LLaMA-Factory
 pip install -e .
 ```
 
-### Fine-Tuning 
+#### Fine-Tuning 
 To use LLaMA-Factory, follow these steps:
 
 1. Add your dataset into `dataset_info.json`.
