@@ -26,21 +26,24 @@ class ConfigManager:
             with open(description_path, "r", encoding='utf-8') as file:
                 ConfigManager._description = json.load(file)
 
-    @classmethod
-    def get_config_dict(cls):
-        if cls._config is None:
-            cls.load_config()
-        return cls._config
+    # @classmethod
+    # def get_config_dict(cls):
+    #     if cls._config is None:
+    #         cls.load_config()
+    #     return cls._config
 
+    # @classmethod
+    # def set_config_dict(cls, config_dict):
+    #     cls._config = config_dict
+        
+        
     @classmethod
     def get_description(cls):
         if cls._description is None:
             cls.load_description()
         return cls._description
         
-    @classmethod
-    def set_config_dict(cls, config_dict):
-        cls._config = config_dict
+
 
     @classmethod
     def set_description(cls, description_dict):
