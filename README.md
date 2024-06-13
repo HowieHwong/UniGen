@@ -117,26 +117,31 @@ Configure efficiency settings to optimize the data generation process. Enable or
 Use the configured settings to generate the dataset using the UniGen tool. Ensure all configurations are correctly set before starting the generation process.
 
 
+## LLM Evaluation
 
-
-
-## LLM Evaluation 
 To assess the performance of LLMs on the generated dataset, follow these steps:
 
-1. **Generate Output:** First, generate the output using the provided dataset.
-2. **Evaluate the Output:** After generating the output, proceed to evaluate its performance.
+### 1. Generate Output
 
-To generate the output for the LLMs on your dataset, execute the following command:
+First, generate the output using the provided dataset. Execute the following command to generate the output for the LLMs on your dataset:
 
 ```shell
-unigen-cli evaluation unigen/examples/eval_config.yaml
+unigen-cli evaluation examples/eval_config.yaml
 ```
 
-You can customize your evaluation settings in the configuration file located at: `unigen/examples/eval_config.yaml`
+You can customize your evaluation settings in the configuration file located at `examples/eval_generation_config.yaml`.
 
-Specify the file to be evaluated in the `tasks_files` section of your configuration. Include the filename and the temperature setting for the evaluation process.
+### 2. Evaluate the Output
 
+After generating the output, proceed to evaluate its performance. Use the following command to evaluate the generated output:
 
+```shell
+unigen-cli judge examples/eval_config.yaml
+```
+
+Customize your evaluation settings in the configuration file located at `examples/eval_judge.yaml`.
+
+Specify the file to be evaluated in the `tasks_files` section of your configuration. Include the filename and the temperature setting for the LLM-judge process.
 
 ## UniGen Augmentation Using LLaMA-Factory
 

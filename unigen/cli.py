@@ -17,7 +17,7 @@ USAGE = ("-" * 70
 class Command(str, Enum):
     GEN = 'generation'
     ANA = 'analysis'
-    JUDGE = 'judges'
+    JUDGE = 'judge'
     EVAL = 'evaluation'
     AUG = 'augmentation'
     HELP = 'help'
