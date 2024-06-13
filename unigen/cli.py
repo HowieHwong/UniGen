@@ -1,6 +1,5 @@
 import sys
 from enum import Enum, unique
-import yaml
 from utils.file_process import *
 
 
@@ -56,10 +55,12 @@ def main():
     command = sys.argv[1]
     config_path = sys.argv[2] if len(sys.argv) > 2 else None
 
-    if command in {Command.GEN, Command.ANA, Command.EVAL, Command.AUG} and config_path:
+    if command in {Command.GEN, Command.ANA, Command.EVAL, Command.AUG,Command.JUDGE} and config_path:
         config = load_yaml(config_path)
         if command == Command.GEN:
             generation(config)
+        if command == Command.JUDGE:
+            judge(config)
         elif command == Command.ANA:
             analysis(config)
         elif command == Command.EVAL:
