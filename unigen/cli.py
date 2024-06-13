@@ -1,6 +1,7 @@
 import sys
 from enum import Enum, unique
 import yaml
+from utils.file_process import *
 
 USAGE = ("-" * 70
     + "\n"
@@ -16,14 +17,12 @@ USAGE = ("-" * 70
 class Command(str, Enum):
     GEN = 'generation'
     ANA = 'analysis'
+    JUDGE = 'judges'
     EVAL = 'evaluation'
     AUG = 'augmentation'
     HELP = 'help'
 
-def load_config(yaml_path):
-    with open(yaml_path, 'r') as file:
-        config = yaml.safe_load(file)
-    return config
+
 
 def generation(config):
     print("Starting generation process with config:", config)
@@ -40,9 +39,9 @@ def evaluation(config):
     
 def judge(config):
     print("Starting judge_evaluation process with config:", config)
-    from utils import generation
-    Generator = generation.LLMGeneration(config)
-    Generator.generation_results()
+    import eval
+    judge_results = eval.judge(config)
+    print(judge_results)
 
 def augmentation(config):
     print("Starting augmentation process with config:", config)
@@ -56,7 +55,7 @@ def main():
     config_path = sys.argv[2] if len(sys.argv) > 2 else None
 
     if command in {Command.GEN, Command.ANA, Command.EVAL, Command.AUG} and config_path:
-        config = load_config(config_path)
+        config = load_yaml(config_path)
         if command == Command.GEN:
             generation(config)
         elif command == Command.ANA:

@@ -7,11 +7,12 @@ from utils.eval_utils import eval_single
 from utils.eval_utils import *
 from utils.configuration import ConfigManager
 
-def judge():
-    # 加载配置文件
-    ConfigManager.load_config()
-    config = ConfigManager.get_config_dict()
-
+def judge(config):
+    
+    # # 加载配置文件
+    # ConfigManager.load_config()
+    # config = ConfigManager.get_config_dict()
+    results =[]
     # 从配置文件中读取信息
     models = config['models']
     base_dir = config['base_dir']
