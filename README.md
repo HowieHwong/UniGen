@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="https://github.com/HowieHwong/UniGen/blob/main/images/unigen_logo.png" alt="logo">
+</p>
+
 
 # UniGen: A Unified Framework for Textual Dataset Generation
 
