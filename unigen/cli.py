@@ -3,6 +3,7 @@ from enum import Enum, unique
 import yaml
 from utils.file_process import *
 
+
 USAGE = ("-" * 70
     + "\n"
     + "| Usage:                                                             |\n"
@@ -23,8 +24,9 @@ class Command(str, Enum):
     HELP = 'help'
 
 
-
 def generation(config):
+    import unigen
+    unigen.unigen_generation(config)
     print("Starting generation process with config:", config)
 
 

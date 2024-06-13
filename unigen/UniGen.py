@@ -248,7 +248,7 @@ class UniGen:
         save_thread.join()
 
 
-def generation(config):
+def unigen_generation(config):
     dataset_name = config['dataset_name']
     generation_number = config['generation_number']
     data_file_path = config['data_file_path']
