@@ -10,4 +10,4 @@ setup(
             'unigen-cli = unigen.cli:main'
         ]
     }
-)
+)i

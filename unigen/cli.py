@@ -34,7 +34,7 @@ def analysis(config):
 
 def evaluation(config):
     print("Starting model_evaluation process with config:", config)
-    from utils import generation
+    import generation
     Generator = generation.LLMGeneration(config)
     Generator.generation_results()
     

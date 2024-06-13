@@ -2,7 +2,7 @@
 # UniGen: A Unified Framework for Textual Dataset Generation Using Large Language Models
 
 
-# UniGen Dataset Generation Guide
+## UniGen Dataset Generation Guide
 
 This guide provides detailed instructions for generating a dataset using the UniGen tool with the specified configuration settings.
 
@@ -39,8 +39,6 @@ generation_settings:
   few_shot_num: 5
   random_example: false
   max_worker: 2
-  label_ratio: null
-  label_constraint: false
 ```
 
 - `temperature`: Controls the randomness of the generation.
@@ -49,8 +47,6 @@ generation_settings:
 - `few_shot_num`: Number of examples to use for few-shot learning.
 - `random_example`: Boolean to indicate if random examples should be used.
 - `max_worker`: Number of worker threads to use for generation.
-- `label_ratio`: Ratio of labeled to unlabeled data (if applicable).
-- `label_constraint`: Boolean to indicate if labels are constrained.
 
 #### Generation Hint
 
@@ -69,7 +65,7 @@ generation_hint:
 - `dataset_description`: A detailed description of the dataset.
 - `dataset_name`: The name of the dataset.
 - `original_dataset_path`: Path to the original dataset.
-- `dataset_constraint`: List of constraints for the dataset.
+- `dataset_constraint`: List of constraints for generating the dataset.
 - `with_label`: Boolean to indicate if labels should be included.
 - `with_attribute`: Boolean to indicate if attributes should be included.
 - `add_attribute`: Boolean to indicate if new attributes should be added.
@@ -120,15 +116,9 @@ Configure efficiency settings to optimize the data generation process. Enable or
 
 Use the configured settings to generate the dataset using the UniGen tool. Ensure all configurations are correctly set before starting the generation process.
 
-#### 7. Verify and Validate Generated Data
 
-After generating the dataset, verify and validate the data to ensure it meets the desired quality and relevance.
 
-<!-- ### Conclusion
 
-Follow the above steps to generate a high-quality dataset using UniGen. Customize the settings as necessary to fit your specific use case and data generation needs.
-
-For more information, refer to the [UniGen documentation](https://github.com/hiyouga/LLaMA-Factory/tree/main/data). -->
 
 ## LLM Evaluation 
 To assess the performance of LLMs on the generated dataset, follow these steps:
