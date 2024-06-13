@@ -1,5 +1,5 @@
 
-## UniGen Generation
+# UniGen: A Unified Framework for Textual Dataset Generation Using Large Language Models
 
 
 # UniGen Dataset Generation Guide
