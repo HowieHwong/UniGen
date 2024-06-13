@@ -33,7 +33,13 @@ def analysis(config):
     print("Starting analysis process with config:", config)
 
 def evaluation(config):
-    print("Starting evaluation process with config:", config)
+    print("Starting model_evaluation process with config:", config)
+    from utils import generation
+    Generator = generation.LLMGeneration(config)
+    Generator.generation_results()
+    
+def judge(config):
+    print("Starting judge_evaluation process with config:", config)
     from utils import generation
     Generator = generation.LLMGeneration(config)
     Generator.generation_results()
