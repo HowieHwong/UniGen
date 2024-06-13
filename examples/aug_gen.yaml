@@ -1,0 +1,5 @@
+## this is for convert into alpaca format for LLaMA-Factory fine-tuning.
+input_json_path: 'Path to Unigen generated dataset'
+output_json_path: 'Path to save dataset for LLaMA-Factory fine-tuning'
+instruction_key: 'prompt'
+output_key: 'res'
