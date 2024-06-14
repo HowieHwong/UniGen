@@ -4,6 +4,10 @@
 
 
 # UniGen: A Unified Framework for Textual Dataset Generation
+[![Paper](https://img.shields.io/badge/Paper-%F0%9F%8E%93-lightgrey?style=flat-square)](https://arxiv.org/)  [![Website](https://img.shields.io/badge/Website-%F0%9F%90%BE-green?style=flat-square)](https://unigen-framework.github.io/unigen-framework/)
+
+<img src="https://img.shields.io/github/last-commit/HowieHwong/UniGen?style=flat-square&color=5D6D7E" alt="git-last-commit" /> <img src="https://img.shields.io/github/commit-activity/m/HowieHwong/UniGen?style=flat-square&color=5D6D7E" alt="GitHub commit activity" /> <img src="https://img.shields.io/github/languages/top/HowieHwong/UniGen?style=flat-square&color=5D6D7E" alt="GitHub top language" />
+
 
 ## :fire: News
 
