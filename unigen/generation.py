@@ -1,240 +1,284 @@
-import time
-import torch
-from fastchat.model import load_model, get_conversation_template
-from utils.generation_utils import *
-from dotenv import load_dotenv
-import os
+import os.path
 import json
-import threading
+import random
+import tiktoken
 from tqdm import tqdm
-import urllib3
+from pprint import pprint
+from .utils import attribute,embedding,data_format, RAG_eval, math_eval, self_reflection
+from .utils.configuration import ConfigManager
+from unigen.utils.IO import print, input
+from unigen.utils.LLM_model import ModelAPI
+from unigen.utils.embedding import EmbeddingProcessor
+from unigen.utils.file_process import save_json,load_json,check_and_rename_file
+from joblib import Parallel, delayed
+from threading import Thread
+from queue import Queue
+import warnings
 import traceback
-import utils.file_process
+from dataclasses import dataclass, field
+from concurrent.futures import ThreadPoolExecutor
+from threading import Thread
+from datetime import datetime
+from tenacity import retry, wait_random_exponential, stop_after_attempt
+from .utils.prompt import prompt_template
 
-load_dotenv()
-urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+warnings.filterwarnings("ignore")
+
+DEBUG = True
+# import debugpy
+# try:
+#     # 5678 is the default attach port in the VS Code debug configurations. Unless a host and port are specified, host defaults to 127.0.0.1
+#     debugpy.listen(("localhost", 9501))
+#     print("Waiting for debugger attach")
+#     debugpy.wait_for_client()
+# except Exception as e:
+#     pass
 
 
-class LLMGeneration:
+class UniGen:
     def __init__(self,
-                 config
-                 ):
-        self.model_name = ""
-        self.model_path = config.model_path
-        self.test_type = config.test_type
-        self.data_path = config.data_path
-        self.config = config
-        self.online_model = config.online_model
-        self.repetition_penalty = config.repetition_penalty
-        self.num_gpus = config.num_gpus
-        self.max_new_tokens = config.max_new_tokens
-        self.debug = config.debug
-        self.online_model_list = get_models()[1]
-        self.model_mapping = get_models()[0]
-        self.device = 'cuda' if torch.cuda.is_available() else 'cpu'
-        self.use_replicate = config.use_replicate
-        self.use_deepinfra = config.use_deepinfra
-        self.model_name = model_mapping.get(self.model_path, "")
-        self.max_retries = config.max_retries
-        self.retry_interval = config.retry_interval
+                 config,
+                 **kwargs):
 
-    def _generation_hf(self, prompt, tokenizer, model, temperature):
-        """
-            Generates a response using a Hugging Face model.
+        
+        self.efficiency_configuration=config['efficiency_configuration']
+        self.config=config
+        generation_config=config['generation_settings']
+        self.batch_size = generation_config['batch_size']
+        self.random_example = generation_config['random_example']
+        self.few_shot_num = generation_config['few_shot_num']
+        self.generation_number =generation_config['generation_number']
+        self.max_worker = generation_config['max_worker']
+        self.temperature = generation_config['temperature']
+        
+        self.dataset_config = config['generation_hint']
+        self.dataset_name = self.dataset_config["dataset_name"]
+        self.dataset_description = self.dataset_config['dataset_description']
+        self.constraints=self.dataset_config["dataset_constraint"]
+        
+        self.with_label = self.dataset_config['with_label']
+        self.with_attribute = self.dataset_config['with_attribute']
+        self.add_attribute = self.dataset_config['add_attribute']
+        self.attribute_key = self.dataset_config['attribute_key'] if self.with_attribute or self.add_attribute else None
+        self.extra_info_keys = self.dataset_config.get('extra_info_keys', [])
+        
+        self.Embedder=EmbeddingProcessor(self.config)
+        self.LLM_model=ModelAPI(self.config)
 
-            :param prompt: The input text prompt for the model.
-            :param tokenizer: The tokenizer associated with the model.
-            :param model: The Hugging Face model used for text generation.
-            :param temperature: The temperature setting for text generation.
-            :return: The generated text as a string.
-            """
+    # def check_original_dataset(self, file_path):
+    #     data=load_json(file_path)
+    #     assert isinstance(data, list)
+    #     if self.with_label:
+    #         assert 'text' in list(data[0].keys()) and 'label' in list(data[0].keys())
+    #     else:
+    #         assert 'text' in list(data[0].keys())
+    
+    
+    def _get_dataset_keys(self):
+        keys = ['text', 'label'] + self.extra_info_keys
+        if self.attribute_key:
+            keys.append(self.attribute_key)
+        return keys
+    
+    
+    def example_selection(self,random_=False):
 
-        prompt = prompt2conversation(prompt, self.model_path)
-        inputs = tokenizer([prompt])
-        inputs = {k: torch.tensor(v).to(self.device) for k, v in inputs.items()}
-        output_ids = model.generate(
-            **inputs,
-            do_sample=True if temperature > 1e-5 else False,
-            temperature=temperature,
-            repetition_penalty=self.repetition_penalty,
-            max_new_tokens=self.max_new_tokens,
-        )
-        if model.config.is_encoder_decoder:
-            output_ids = output_ids[0]
+        data = self.Embedder.preprocess_original_dataset()  
+        keys=self._get_dataset_keys()
+        filtered_data = [{k: item[k] for k in keys if k in item} for item in data]
+        
+        if random_:
+            random.shuffle(data)
+            examples = data[:self.few_shot_num]
+            filtered_examples = [{k: item[k] for k in keys if k in item} for item in examples]
         else:
-            output_ids = output_ids[0][len(inputs["input_ids"][0]):]
-        outputs = tokenizer.decode(
-            output_ids, skip_special_tokens=True, spaces_between_special_tokens=False
-        )
-        return outputs
+            examples = self.Embedder.cluster_embeddings(data, num_clusters=self.few_shot_num)
+            filtered_examples = [{k: item[k] for k in keys if k in item} for item in examples]
+            
+        random.shuffle(filtered_examples)
 
-    def generation(self, model_name, prompt, tokenizer, model, temperature=None):
-        """
-            Generates a response using either an online or a local model.
+        return filtered_examples
 
-            :param model_name: The name of the model.
-            :param prompt: The input text prompt for the model.
-            :param tokenizer: The tokenizer for the model.
-            :param model: The model used for text generation.
-            :param temperature: The temperature setting for text generation. Default is None.
-            :return: The generated text as a string.
-            """
+    def few_shot_description(self, examples):
+        random.shuffle(examples)
+        json_output = json.dumps(examples, indent=4)
+        return json_output
 
-        try:
-            if (model_name in self.online_model_list) and (
-                    (self.online_model and self.use_replicate) or (self.online_model and self.use_deepinfra)):
-                ans = gen_online(model_name, prompt, temperature, replicate=self.use_replicate,
-                                 deepinfra=self.use_deepinfra)
+    def add_constraints(self, constraints):
+        constraints_text = prompt_template["constraints_prefix"]
+        for i, constraint in enumerate(constraints, 1):
+            constraints_text += f"{i}. {constraint}\n"
+        constraints_text += prompt_template["constraints_suffix"]
+        return constraints_text
+
+    def learn_from_human_feedback(self, examples):
+        for example in examples:
+            self._collect_user_feedback(example)
+        feedback_string = ""
+        for index, item in enumerate(examples):
+            if 'label' in item:
+                feedback_string += "Example: " + item['text'] + "\n" + "Label: " + item[
+                    'label'] + '\n' + "Human Feedback: " + item['feedback'] + '\n\n'
             else:
-                ans = self._generation_hf(prompt, tokenizer, model, temperature)
-            if not ans:
-                raise ValueError("The response is NULL or an empty string!")
-            return ans
-        except Exception as e:
-            tb = traceback.format_exc()
-            print(tb)
+                feedback_string += "Example: " + item['text'] + "\n" + "Human Feedback: " + item['feedback'] + '\n\n'
+        return feedback_string
 
-    def process_element(self, el, model, model_name, tokenizer, index, temperature, key_name='prompt'):
-        """
-            Processes a single element (data point) using the specified model.
-
-            :param el: A dictionary containing the data to be processed.
-            :param model: The model to use for processing.
-            :param model_name: The name of the model.
-            :param tokenizer: The tokenizer for the model.
-            :param index: The index of the element in the dataset.
-            :param temperature: The temperature setting for generation.
-            :param key_name: The key in the dictionary where the prompt is located.
-            """
-
-        try:
-            # If 'res' key doesn't exist or its value is empty, generate a new response
-            if "res" not in el or not el['res']:
-                res = self.generation(model_name=model_name, prompt=el[key_name], tokenizer=tokenizer, model=model,
-                                      temperature=temperature)
-                el['res'] = res
-        except Exception as e:
-            # Print error message if there's an issue during processing
-            print(f"Error processing element at index {index}: {e}")
-
-    def process_file(self, data_path, save_path, model_name, tokenizer, model, file_config, key_name='prompt'):
-        """
-            Processes a file containing multiple data points for text generation.
-
-            :param data_path: Path to the input data file.
-            :param save_path: Path where the processed data will be saved.
-            :param model_name: The name of the model used for processing.
-            :param tokenizer: The tokenizer for the model.
-            :param model: The model to use for processing.
-            :param file_config: Configuration settings for file processing.
-            :param key_name: The key in the dictionary where the prompt is located.
-            """
-        if os.path.basename(data_path) not in file_config:
-            print(f"{os.path.basename(data_path)} not in file_config")
+    def _collect_user_feedback(self, example):
+        if DEBUG:
+            feedback = 'good'
+            example['feedback'] = feedback
             return
-
-        with open(data_path) as f:
-            original_data = json.load(f)
-
-        if os.path.exists(save_path):
-            with open(save_path, 'r') as f:
-                saved_data = json.load(f)
+        print("---------------------Please input your feedback-------------------------", "GREEN")
+        if 'label' in example:
+            print(f"Example: Text: {example['text']},    Label: {example['label']}")
+            print("-------------------------------------------------------------------------", "GREEN")
+            feedback = input("Please provide your feedback: ")
         else:
-            saved_data = original_data
+            print(f"Example: Text: {example['text']}")
+            print("-------------------------------------------------------------------------", "green")
+            feedback = input("Please provide your feedback: ", "red")
+        example['feedback'] = feedback
 
-        GROUP_SIZE = 8 if self.online_model else 1
-        for i in tqdm(range(0, len(saved_data), GROUP_SIZE), desc=f"Processing {data_path}", leave=False):
-            group_data = saved_data[i:i + GROUP_SIZE]
-            threads = []
-            for idx, el in enumerate(group_data):
-                temperature = file_config.get(os.path.basename(data_path), 0.0)
-                t = threading.Thread(target=self.process_element,
-                                     args=(el, model, model_name, tokenizer, idx, temperature, key_name))
-                t.start()
-                threads.append(t)
-            file_process.save_json(saved_data, f"{save_path}")
-
-            # Wait for all threads to complete
-            for t in threads:
-                t.join()
-        file_process.save_json(saved_data, f"{save_path}")
-
-    def _run_task(self, model_name, model, tokenizer, base_dir, file_config, key_name='prompt'):
-        """
-            Runs a specific evaluation task based on provided parameters.
-
-            :param model_name: The name of the model.
-            :param model: The model used for processing.
-            :param tokenizer: The tokenizer for the model.
-            :param base_dir: Base directory containing test data files.
-            :param file_config: Configuration settings for file processing.
-            :param key_name: The key in the dictionary where the prompt is located.
-            """
-
-        test_res_dir = os.path.join(base_dir, 'test_res', model_name)
-        if not os.path.exists(test_res_dir):
-            os.makedirs(test_res_dir)
-        section = base_dir.split('/')[-1]
-
-        os.makedirs(os.path.join('generation_results', model_name, section), exist_ok=True)
-
-        file_list = os.listdir(base_dir)
-        for file in tqdm(file_list, desc="Processing files"):
-            data_path = os.path.join(base_dir, file)
-            save_path = os.path.join('generation_results', model_name, section, file)
-            self.process_file(data_path, save_path, model_name, tokenizer, model, file_config, key_name)
+    def count_tokens(self, text):
+        enc = tiktoken.encoding_for_model(self.model)
+        num_tokens = len(enc.encode(text))
+        return num_tokens
 
 
-    def run_data(self, model_name, model, tokenizer):
-        file_config =  self.config.task_files.MCQ
-        self._run_task(model_name, model, tokenizer, self.data_path, file_config)
-
-    def _run_single_test(self):
-        """
-            Executes a single test based on specified parameters.
-
-            :param args: Contains parameters like test type, model name, and other configurations.
-            :return: "OK" if successful, None otherwise.
-            """
-        model_name = self.model_name
-        # print(f"Beginning generation with {self.test_type} evaluation at temperature {self.temperature}.")
-        print(f"Evaluation target model: {model_name}")
-        if (model_name in self.online_model_list) and (
-                (self.online_model and self.use_replicate) or (self.online_model and self.use_deepinfra)):
-            model, tokenizer = (None, None)
-        else:
-            model, tokenizer = load_model(
-                self.model_path,
-                num_gpus=self.num_gpus,
-                device=self.device,
-                debug=self.debug,
-            )
-
-        self.run_data(model_name=model_name, model=model, tokenizer=tokenizer)
-
-    def generation_results(self, max_retries=10, retry_interval=3):
-        """
-            Main function to orchestrate the test runs with retries.
-
-            :param args: Command-line arguments for the test run.
-            :param max_retries: Maximum attempts to run the test.
-            :param retry_interval: Time interval between retries in seconds.
-            :return: Final state of the test run.
-            """
-        if not os.path.exists(self.data_path):
-            print(f"Dataset path {self.data_path} does not exist.")
-            return None
-
-        for attempt in range(max_retries):
+    def run(self,):
+        assert self.generation_number % self.batch_size == 0, "generation_number must be divisible by batch_size"
+        self.Embedder = embedding.EmbeddingProcessor(config=self.config)
+        self.Embedder.preprocess_original_dataset()  
+        
+        @retry(wait=wait_random_exponential(min=5, max=20), stop=stop_after_attempt(3))
+        def batch_generation(batch_id, queue):
             try:
-                state = self._run_single_test()
-                if state:
-                    print(f"Test function successful on attempt {attempt + 1}")
-                    return state
-            except Exception as e:
-                print(f"Test function failed on attempt {attempt + 1}: {e}")
-                print(f"Retrying in {retry_interval} seconds...")
-                time.sleep(retry_interval)
+                batch_data = []
+                if self.few_shot_num > 0:
+                    examples = self.example_selection(self.random_example)
+                    few_shot_des = self.few_shot_description(examples)
+                else:
+                     constraint_des = ""
+                if self.constraints != []:
+                    constraint_des = self.add_constraints(self.constraints)
+                else:
+                    constraint_des = ""
+                description_prompt = prompt_template["description_prompt"].format(
+                    description_for_dataset=self.dataset_description,
+                )
+                initial_prompt = prompt_template["initial_prompt"].format(batch_size=self.batch_size,
+                                                                               dataset_constraint=constraint_des,
+                                                                               few_shot_examples=few_shot_des)
+                epoch_prompt = description_prompt + initial_prompt
 
-        print("Test failed after maximum retries.")
-        return None
+                if self.add_attribute and not self.with_attribute:
+                    examples = attribute.get_attribute(examples, dataset_description=self.dataset_description)
+                    self.with_attribute = True
+                if self.with_attribute:
+                    epoch_prompt += attribute.add_attributes(examples=examples, attribute_key=self.attribute_key, attr=None)
+                epoch_prompt += data_format.create_data_entries(num_elements=self.batch_size, with_label=self.with_label,attribute_key=self.attribute_key)
+                
+                res_data = data_format.get_res_data(epoch_prompt)
+                epoch_data_item = data_format.extract_data_item(res_data)
+
+                if self.efficiency_configuration["self_reflection"]:
+                    reflection_res = self_reflection.reflection(epoch_data_item, self.dataset_description,
+                                                                few_shot_des, constraint_des)
+                    for index, reflect_res in enumerate(reflection_res):
+                        if reflect_res['text']:
+                            batch_data.append(reflect_res)
+                        else:
+                            batch_data.append(epoch_data_item[index])
+                else:
+                    batch_data += epoch_data_item
+                if self.efficiency_configuration["math_eval"]:
+                    for item in batch_data:
+                        print("math_eval", item["text"])
+                        batch_data[batch_data.index(item)] = math_eval.math_eval(item)
+
+                if self.efficiency_configuration["truthfulness_eval"]:
+                    if batch_data:
+                        for item in batch_data:                            
+                            truthfulness_eval_res = RAG_eval.wiki_check(item)
+                            if truthfulness_eval_res:
+                                batch_data[batch_data.index(item)] = truthfulness_eval_res
+                            else:
+                                batch_data[batch_data.index(item)] = item
+                queue.put(batch_data)
+                return batch_data
+            except Exception as e:
+                print(traceback.format_exc())
+                return None
+
+        total_batches = int(self.generation_number / self.batch_size)
+        print(f'total_batches:{total_batches}', color='GREEN', )
+
+        def save_dataset(generated_dataset):
+            """
+            Save the dataset to a JSON file.
+            """
+            save_path=self.dataset_config['save_path']
+            data_path=os.path.join(save_path, f"{self.dataset_name}_{self.model_type}_generated.json")
+            generated_data_file_path = check_and_rename_file(data_path)
+            try:
+                current_time = datetime.now()
+                human_readable_time = current_time.strftime("%Y-%m-%d %H:%M:%S")
+                config = ConfigManager.get_config_dict()
+                config['data_entry_num'] = len(generated_dataset)
+                filtered_dataset = list(filter(lambda item: item['isgood'], generated_dataset))
+                config['filtered_data_entry_num'] = len(filtered_dataset)
+                genset = {
+                    'update_time': human_readable_time,
+                    "config": self.config,
+                    "dataset": generated_dataset
+                }
+                save_json(genset,save_path)
+                print(f"Data save path:{generated_data_file_path}\n\n")
+                print("Dataset saved successfully.", color='BLUE', )
+            except Exception as e:
+                print(f"Failed to save dataset: {e}")
+
+        all_data = []
+
+        def save_data_to_file(queue):
+            while True:
+                data = queue.get() 
+                if data == "DONE":
+                    break
+                all_data.extend(data)
+                save_dataset(all_data)
+                queue.task_done()
+
+        data_queue = Queue()
+        save_thread = Thread(target=save_data_to_file, args=(data_queue,))
+        save_thread.start()
+        with ThreadPoolExecutor(max_workers=self.max_worker) as executor:
+            futures = [executor.submit(batch_generation, batch_id=i, queue=data_queue) for i in range(total_batches)]
+        data_queue.put("DONE")
+        save_thread.join()
+
+
+def unigen_generation(config):
+    generator = UniGen(config)
+    generator.run()
+
+
+def eval_generation(config):
+    dataset_name = config['dataset_name']
+    generation_number = config['generation_number']
+    data_file_path = config['data_file_path']
+    generated_data_file_path = config['generated_file']
+
+    data_file_path = f"test_dataset/{dataset_name}/{dataset_name}.json"
+    generator = UniGen(config)
+    generator.run(data_file_path, generated_data_file_path)
+    
+def eval_generation(config):
+    dataset_name = config['dataset_name']
+    generation_number = config['generation_number']
+    data_file_path = config['data_file_path']
+    generated_data_file_path = config['generated_file']
+
+    data_file_path = f"test_dataset/{dataset_name}/{dataset_name}.json"
+    generator = UniGen(config)
+    generator.run(data_file_path, generated_data_file_path)

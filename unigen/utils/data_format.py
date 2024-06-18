@@ -1,6 +1,6 @@
 import json,re
 from .LLM_model import ModelAPI
-from utils.IO import print,input
+from .IO import print,input
 from tenacity import retry, wait_random_exponential, stop_after_attempt
 from .prompt import prompt_template
 
@@ -13,6 +13,7 @@ def extract_data_item(data):
 
 @retry(wait=wait_random_exponential(min=2, max=8), stop=stop_after_attempt(8))
 def get_res_data(prompt):
+    print(prompt)
     response=get_res_str(prompt)
     clear_response = clean_json_string(response)
     try:
@@ -23,9 +24,9 @@ def get_res_data(prompt):
         print(e)
 
 @retry(wait=wait_random_exponential(min=2, max=8), stop=stop_after_attempt(8))
-def get_res_str(prompt):
-    LLM_model=ModelAPI()
-    response = LLM_model.get_res(prompt,)
+def get_res_str(prompt,):
+    model=ModelAPI()
+    response = model.get_res(prompt,)
     return response
     
 
@@ -71,7 +72,7 @@ def clean_json_string(json_string):
 
 
 
-def create_data_entries(with_label, num_elements, attribute_key=None, extra_info_keys=None, prompt_template=None):
+def create_data_entries(with_label, num_elements=1, attribute_key=None, extra_info_keys=None, prompt_template=None):
     data_entries = []
     for index in range(num_elements):
         entry = {'id': index, 'text': ''}

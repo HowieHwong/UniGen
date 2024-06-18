@@ -2,11 +2,8 @@ import wikipediaapi
 from . import data_format
 from .data_format import prompt_format
 from .IO import print, input
-import json
 from .prompt import prompt_template
-from utils import file_process,data_format
-from utils.IO import print,input
-import wikipedia
+
 import concurrent.futures
 
 

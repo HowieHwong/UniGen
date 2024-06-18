@@ -1,14 +1,23 @@
 from tenacity import retry, wait_random_exponential, stop_after_attempt
 from openai import OpenAI, AzureOpenAI
-from anthropic import Anthropic
+# from anthropic import Anthropic
 import traceback
 
+def singleton(cls):
+    instances = {}
 
+    def get_instance(*args, **kwargs):
+        if cls not in instances:
+            instances[cls] = cls(*args, **kwargs)
+        return instances[cls]
+
+    return get_instance
+
+@singleton
 class ModelAPI:
     def __init__(self,config, model_type='gpt', temperature=0.8):
-
         self.config=config
-        self.model_type = config['api_settings']['model_type'].lower()
+        self.model_type = config['generation_settings']['model_type'].lower()
         self.temperature = config['generation_settings']['temperature']
         if self.model_type not in ['gpt', 'claude', 'llama3']:
             raise ValueError(f"Unsupported model type: {model_type}")
@@ -16,15 +25,15 @@ class ModelAPI:
     @retry(wait=wait_random_exponential(min=1, max=10), stop=stop_after_attempt(10))
     def get_res(self, text, model=None, message=None, azure=True, json_format=False, ):
         temperature = self.temperature
+        print(self.model_type.lower())
         try:
             if self.model_type.lower() == 'gpt':
-                self.api_key = self.config['api_settings']['openai_api']
+                
                 return self.api_send_gpt4(text, model, message, azure, json_format, temperature)
             elif self.model_type.lower() == 'claude':
-                self.api_key = self.config['api_settings']['claude_api']
+
                 return self.api_send_claude(text, model, message, json_format, temperature)
             elif self.model_type.lower() == 'llama3':
-                self.api_key = self.config['api_settings']['deepinfra_api']
                 return self.api_send_llama3(text, model, message, json_format, temperature)
             else:
                 raise ValueError(f"Unsupported model type: {self.model_type}")
@@ -73,16 +82,17 @@ class ModelAPI:
         return full_response
 
     def api_send_gpt4(self, string, model, message=None, azure=True, json_format=False, temperature=0.8):
-        azure = self.config["generation_settings"]["azure_openai"]
+        azure = self.config["api_settings"]["use_azure"]
         if message is None:
             message = [{"role": "user", "content": string}]
         response_format = {"type": "json_object"} if json_format else None
         print(temperature)
         if azure:
-            azure_endpoint = self.config["generation_settings"]["azure_base_url"]
-            api_key = self.config['api_self.configuration']['openai_azure_api']
-            api_version = self.config["generation_settings"]["azure_version"]
-            model = self.config["generation_settings"]["azure_generation_engine"]
+            azure_endpoint = self.config["api_settings"]["azure_base_url"]
+            api_key = self.config['api_settings']['azure_api_key']
+            api_version = self.config["api_settings"]["azure_version"]
+            model = self.config["api_settings"]["azure_model"]
+            
             print(f"Sending API request...{model}")
             client = AzureOpenAI(
                 azure_endpoint=azure_endpoint,
@@ -90,15 +100,16 @@ class ModelAPI:
                 api_version=api_version,
             )
 
-            stream = client.chat.completions.create(
+            chat_completion = client.chat.completions.create(
                 model=model,
                 messages=message,
                 temperature=temperature,
                 response_format=response_format,
             )
         else:
-            model = self.config["generation_settings"]["openai_chat_model"]
-            base_url = self.config["generation_settings"]["base_url"]
+            model = self.config["api_settings"]["openai_chat_model"]
+            base_url = self.config["api_settings"]["base_url"]
+            api_key = self.config['api_settings']['openai_api_key']
             client = OpenAI(api_key=self.api_key,
                             #base_url=base_url,
                             )
@@ -110,7 +121,7 @@ class ModelAPI:
                 temperature=temperature,
                 response_format=response_format,
             )
-        dict(stream.usage)  #{'completion_tokens': 28, 'prompt_tokens': 12, 'total_tokens': 40}
+        dict(chat_completion.usage)  #{'completion_tokens': 28, 'prompt_tokens': 12, 'total_tokens': 40}
         if not chat_completion.choices[0].message.content:
             raise ValueError("The response from the API is NULL or an empty string!")
         full_response = chat_completion.choices[0].message.content

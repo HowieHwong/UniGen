@@ -2,7 +2,7 @@ import os
 import subprocess
 import tempfile
 from copy import deepcopy
-import file_process,data_format
+from . import data_format
 from .IO import print
 from tenacity import retry, wait_random_exponential, stop_after_attempt
 from .prompt import prompt_template
