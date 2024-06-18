@@ -1,0 +1,3 @@
+[console_scripts]
+unigen-cli = unigen.cli:main
+
