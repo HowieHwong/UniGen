@@ -1,8 +1,0 @@
-README.md
-setup.py
-Unigen.egg-info/PKG-INFO
-Unigen.egg-info/SOURCES.txt
-Unigen.egg-info/dependency_links.txt
-Unigen.egg-info/entry_points.txt
-Unigen.egg-info/requires.txt
-Unigen.egg-info/top_level.txt
