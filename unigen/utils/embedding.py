@@ -10,7 +10,6 @@ from .file_process import save_json,load_json
 class EmbeddingProcessor:
     def __init__(self, config):
         self.config = config
-        print(config)
 
     def preprocess_original_dataset(self,):
         original_dataset_path=self.config['generation_hint']['original_dataset_path']
@@ -24,7 +23,6 @@ class EmbeddingProcessor:
             embeddings = load_json(embedding_path)
         return embeddings
             
-    
     
     def get_embedding(string, config):
         settings = config["api_settings"]

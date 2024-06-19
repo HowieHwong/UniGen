@@ -25,10 +25,8 @@ class ModelAPI:
     @retry(wait=wait_random_exponential(min=1, max=10), stop=stop_after_attempt(10))
     def get_res(self, text, model=None, message=None, azure=True, json_format=False, ):
         temperature = self.temperature
-        print(self.model_type.lower())
         try:
             if self.model_type.lower() == 'gpt':
-                
                 return self.api_send_gpt4(text, model, message, azure, json_format, temperature)
             elif self.model_type.lower() == 'claude':
 
@@ -47,7 +45,7 @@ class ModelAPI:
         top_p = 1 if temperature <= 1e-5 else 0.9
         temperature = 0.01 if temperature <= 1e-5 else temperature
         model = 'meta-llama/Meta-Llama-3-70B-Instruct'
-        print(f"Sending API request...{model}")
+        print(f"Sending API request...{model},temperature:{temperature}")
         chat_completion = client.chat.completions.create(
             model='meta-llama/Meta-Llama-3-70B-Instruct',
             messages=[{"role": "user", "content": string}],
@@ -86,20 +84,17 @@ class ModelAPI:
         if message is None:
             message = [{"role": "user", "content": string}]
         response_format = {"type": "json_object"} if json_format else None
-        print(temperature)
         if azure:
             azure_endpoint = self.config["api_settings"]["azure_base_url"]
             api_key = self.config['api_settings']['azure_api_key']
             api_version = self.config["api_settings"]["azure_version"]
             model = self.config["api_settings"]["azure_model"]
-            
-            print(f"Sending API request...{model}")
+            print(f"Sending API request...{model},temperature:{temperature}")
             client = AzureOpenAI(
                 azure_endpoint=azure_endpoint,
                 api_key=api_key,
                 api_version=api_version,
             )
-
             chat_completion = client.chat.completions.create(
                 model=model,
                 messages=message,

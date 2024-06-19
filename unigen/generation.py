@@ -2,10 +2,10 @@ import os.path
 import json
 import random
 import tiktoken
+import copy
 from tqdm import tqdm
 from pprint import pprint
 from .utils import attribute,embedding,data_format, RAG_eval, math_eval, self_reflection
-from .utils.configuration import ConfigManager
 from unigen.utils.IO import print, input
 from unigen.utils.LLM_model import ModelAPI
 from unigen.utils.embedding import EmbeddingProcessor
@@ -16,7 +16,7 @@ from queue import Queue
 import warnings
 import traceback
 from dataclasses import dataclass, field
-from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from threading import Thread
 from datetime import datetime
 from tenacity import retry, wait_random_exponential, stop_after_attempt
@@ -24,25 +24,15 @@ from .utils.prompt import prompt_template
 
 warnings.filterwarnings("ignore")
 
-DEBUG = True
-# import debugpy
-# try:
-#     # 5678 is the default attach port in the VS Code debug configurations. Unless a host and port are specified, host defaults to 127.0.0.1
-#     debugpy.listen(("localhost", 9501))
-#     print("Waiting for debugger attach")
-#     debugpy.wait_for_client()
-# except Exception as e:
-#     pass
-
 
 class UniGen:
     def __init__(self,
                  config,
                  **kwargs):
 
-        
-        self.efficiency_configuration=config['efficiency_configuration']
         self.config=config
+        self.efficiency_configuration=config['efficiency_configuration']
+
         generation_config=config['generation_settings']
         self.batch_size = generation_config['batch_size']
         self.random_example = generation_config['random_example']
@@ -149,6 +139,11 @@ class UniGen:
         assert self.generation_number % self.batch_size == 0, "generation_number must be divisible by batch_size"
         self.Embedder = embedding.EmbeddingProcessor(config=self.config)
         self.Embedder.preprocess_original_dataset()  
+                
+        save_path=self.dataset_config['save_path']
+        data_path=os.path.join(save_path, f"{self.dataset_name}_generated.json")
+        generated_data_file_path = check_and_rename_file(data_path)
+        print(generated_data_file_path)
         
         @retry(wait=wait_random_exponential(min=5, max=20), stop=stop_after_attempt(3))
         def batch_generation(batch_id, queue):
@@ -193,7 +188,6 @@ class UniGen:
                     batch_data += epoch_data_item
                 if self.efficiency_configuration["math_eval"]:
                     for item in batch_data:
-                        print("math_eval", item["text"])
                         batch_data[batch_data.index(item)] = math_eval.math_eval(item)
 
                 if self.efficiency_configuration["truthfulness_eval"]:
@@ -217,22 +211,20 @@ class UniGen:
             """
             Save the dataset to a JSON file.
             """
-            save_path=self.dataset_config['save_path']
-            data_path=os.path.join(save_path, f"{self.dataset_name}_{self.model_type}_generated.json")
-            generated_data_file_path = check_and_rename_file(data_path)
             try:
                 current_time = datetime.now()
                 human_readable_time = current_time.strftime("%Y-%m-%d %H:%M:%S")
-                config = ConfigManager.get_config_dict()
+                config=copy.deepcopy(self.config)
+                del config['api_settings']
                 config['data_entry_num'] = len(generated_dataset)
                 filtered_dataset = list(filter(lambda item: item['isgood'], generated_dataset))
                 config['filtered_data_entry_num'] = len(filtered_dataset)
                 genset = {
                     'update_time': human_readable_time,
-                    "config": self.config,
+                    "config": config,
                     "dataset": generated_dataset
                 }
-                save_json(genset,save_path)
+                save_json(genset,generated_data_file_path)
                 print(f"Data save path:{generated_data_file_path}\n\n")
                 print("Dataset saved successfully.", color='BLUE', )
             except Exception as e:
@@ -254,10 +246,12 @@ class UniGen:
         save_thread.start()
         with ThreadPoolExecutor(max_workers=self.max_worker) as executor:
             futures = [executor.submit(batch_generation, batch_id=i, queue=data_queue) for i in range(total_batches)]
+            for _ in tqdm(as_completed(futures), total=total_batches, desc="Processing Batches"):
+                pass
         data_queue.put("DONE")
         save_thread.join()
-
-
+        
+        
 def unigen_generation(config):
     generator = UniGen(config)
     generator.run()

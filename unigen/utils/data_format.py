@@ -13,7 +13,6 @@ def extract_data_item(data):
 
 @retry(wait=wait_random_exponential(min=2, max=8), stop=stop_after_attempt(8))
 def get_res_data(prompt):
-    print(prompt)
     response=get_res_str(prompt)
     clear_response = clean_json_string(response)
     try:
@@ -130,7 +129,7 @@ def replace_escaped_underscores(string: str):
         "inner\_thoughts": "User is asking for information about themselves. Retrieving data from core memory.",
         "message": "I know that you are Chad. Is there something specific you would like to know or talk about regarding yourself?"
     """
-    return string.replace("\_", "_")
+    return string.replace('''\_''', "_")
 
 
 def extract_first_json(string: str):
@@ -296,10 +295,11 @@ def clean_json(raw_llm_output, messages=None, functions=None):
 
     for strategy in strategies:
         try:
-            print(f"Trying strategy: {strategy.__name__}")
+            # print(f"Trying strategy: {strategy.__name__}")
             return strategy(raw_llm_output)
         except Exception as e:
-            print(raw_llm_output)
-            print(f"Strategy {strategy.__name__} failed with error: {e}")
+            pass
+            # print(raw_llm_output)
+            # print(f"Strategy {strategy.__name__} failed with error: {e}")
 
     raise Exception(f"Failed to decode valid MemGPT JSON from LLM output:\n=====\n{raw_llm_output}\n=====")

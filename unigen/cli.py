@@ -1,5 +1,6 @@
 import sys
 from enum import Enum, unique
+from pprint import pprint
 from .utils.file_process import *
 
 
@@ -25,8 +26,9 @@ class Command(str, Enum):
 
 def generation(config):
     from .generation import unigen_generation
+    print(f"Starting generation process with config: {config}")
     unigen_generation(config)
-    print("Starting generation process with config:", config)
+
 
 
 def analysis(config):
