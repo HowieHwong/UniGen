@@ -7,7 +7,16 @@
 
 <div align="center">
 
-[![Paper](https://img.shields.io/badge/Paper-%F0%9F%8E%93-lightgrey?style=flat-square)](https://arxiv.org/)  [![Website](https://img.shields.io/badge/Website-%F0%9F%90%BE-green?style=flat-square)](https://unigen-framework.github.io/)
+<div align="center">
+
+<a href="https://arxiv.org/">
+    <img src="https://img.shields.io/badge/Paper-%F0%9F%8E%93-lightgrey?style=flat-square" alt="Paper" style="height:30px;"/>
+</a>
+<a href="https://unigen-framework.github.io/">
+    <img src="https://img.shields.io/badge/Website-%F0%9F%90%BE-green?style=flat-square" alt="Website" style="height:30px;"/>
+</a>
+
+</div>
 
 </div>
 
