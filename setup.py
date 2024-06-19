@@ -20,6 +20,7 @@ setup(
         'pandas',
         'matplotlib',
         'openai>1.0.0',
+        'fschat[model_worker]',
         'protobuf',
         'python-dotenv',
         'PyYAML',
@@ -33,6 +34,10 @@ setup(
         'transformers',
         'urllib3',
         'wikipedia-api',
+        'anthropic',
+        'google.generativeai',
+        'google-api-python-client',
+        'google.ai.generativelanguage',
         'zhipuai',
     ],
     classifiers=[

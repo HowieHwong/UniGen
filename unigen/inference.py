@@ -1,7 +1,8 @@
 import time
 import torch
 from fastchat.model import load_model, get_conversation_template
-from utils.generation_utils import *
+from .utils.generation_utils import *
+from .utils.file_process import *
 from dotenv import load_dotenv
 import os
 import json
@@ -9,34 +10,32 @@ import threading
 from tqdm import tqdm
 import urllib3
 import traceback
-import utils.file_process
 
 load_dotenv()
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 
 class LLMGeneration:
-    def __init__(self,
-                 config
-                 ):
+    def __init__(self, config):
         self.model_name = ""
-        self.model_path = config.model_path
-        self.test_type = config.test_type
-        self.data_path = config.data_path
+        self.model_path = config.get("model_path", None)
+        self.test_type = config.get("test_type", None)
+        self.data_path = config.get("data_path", None)
         self.config = config
-        self.online_model = config.online_model
-        self.repetition_penalty = config.repetition_penalty
-        self.num_gpus = config.num_gpus
-        self.max_new_tokens = config.max_new_tokens
-        self.debug = config.debug
+        self.online_model = config.get("online_model", None)
+        self.repetition_penalty = config.get("repetition_penalty", None)
+        self.num_gpus = config.get("num_gpus", None)
+        self.max_new_tokens = config.get("max_new_tokens", None)
+        self.debug = config.get("debug", None)
         self.online_model_list = get_models()[1]
         self.model_mapping = get_models()[0]
         self.device = 'cuda' if torch.cuda.is_available() else 'cpu'
-        self.use_replicate = config.use_replicate
-        self.use_deepinfra = config.use_deepinfra
-        self.model_name = model_mapping.get(self.model_path, "")
-        self.max_retries = config.max_retries
-        self.retry_interval = config.retry_interval
+        self.use_replicate = config.get("use_replicate", None)
+        self.use_deepinfra = config.get("use_deepinfra", None)
+        self.model_name = self.model_mapping.get(self.model_path, "") if self.model_mapping else ""
+        self.max_retries = config.get("max_retries", None)
+        self.retry_interval = config.get("retry_interval", None)
+        self.key_name=config.get("key_name", 'prompt')
 
     def _generation_hf(self, prompt, tokenizer, model, temperature):
         """
@@ -59,10 +58,7 @@ class LLMGeneration:
             repetition_penalty=self.repetition_penalty,
             max_new_tokens=self.max_new_tokens,
         )
-        if model.config.is_encoder_decoder:
-            output_ids = output_ids[0]
-        else:
-            output_ids = output_ids[0][len(inputs["input_ids"][0]):]
+        output_ids = output_ids[0][len(inputs["input_ids"][0]):]
         outputs = tokenizer.decode(
             output_ids, skip_special_tokens=True, spaces_between_special_tokens=False
         )
@@ -81,10 +77,9 @@ class LLMGeneration:
             """
 
         try:
-            if (model_name in self.online_model_list) and (
-                    (self.online_model and self.use_replicate) or (self.online_model and self.use_deepinfra)):
-                ans = gen_online(model_name, prompt, temperature, replicate=self.use_replicate,
-                                 deepinfra=self.use_deepinfra)
+            if (model_name in self.online_model_list) or (
+                (self.online_model and self.use_replicate) or (self.online_model and self.use_deepinfra)):
+                ans = gen_online(model_name, prompt, temperature, replicate=self.use_replicate,deepinfra=self.use_deepinfra)
             else:
                 ans = self._generation_hf(prompt, tokenizer, model, temperature)
             if not ans:
@@ -129,9 +124,9 @@ class LLMGeneration:
             :param file_config: Configuration settings for file processing.
             :param key_name: The key in the dictionary where the prompt is located.
             """
-        if os.path.basename(data_path) not in file_config:
-            print(f"{os.path.basename(data_path)} not in file_config")
-            return
+        # if os.path.basename(data_path) not in file_config:
+        #     print(f"{os.path.basename(data_path)} not in file_config")
+        #     return
 
         with open(data_path) as f:
             original_data = json.load(f)
@@ -147,17 +142,18 @@ class LLMGeneration:
             group_data = saved_data[i:i + GROUP_SIZE]
             threads = []
             for idx, el in enumerate(group_data):
-                temperature = file_config.get(os.path.basename(data_path), 0.0)
+                #temperature = file_config.get(os.path.basename(data_path), 0.0)
+                temperature=0.0
                 t = threading.Thread(target=self.process_element,
                                      args=(el, model, model_name, tokenizer, idx, temperature, key_name))
                 t.start()
                 threads.append(t)
-            file_process.save_json(saved_data, f"{save_path}")
+            save_json(saved_data, f"{save_path}")
 
             # Wait for all threads to complete
             for t in threads:
                 t.join()
-        file_process.save_json(saved_data, f"{save_path}")
+        save_json(saved_data, f"{save_path}")
 
     def _run_task(self, model_name, model, tokenizer, base_dir, file_config, key_name='prompt'):
         """
@@ -179,6 +175,7 @@ class LLMGeneration:
         os.makedirs(os.path.join('generation_results', model_name, section), exist_ok=True)
 
         file_list = os.listdir(base_dir)
+        file_list = [file for file in file_list if file.endswith('.json')]
         for file in tqdm(file_list, desc="Processing files"):
             data_path = os.path.join(base_dir, file)
             save_path = os.path.join('generation_results', model_name, section, file)
@@ -186,8 +183,9 @@ class LLMGeneration:
 
 
     def run_data(self, model_name, model, tokenizer):
-        file_config =  self.config.task_files.MCQ
-        self._run_task(model_name, model, tokenizer, self.data_path, file_config)
+        #file_config =  self.config.get('task_files',[])
+        file_config=None
+        self._run_task(model_name, model, tokenizer, self.data_path, file_config,self.key_name)
 
     def _run_single_test(self):
         """
@@ -199,7 +197,9 @@ class LLMGeneration:
         model_name = self.model_name
         # print(f"Beginning generation with {self.test_type} evaluation at temperature {self.temperature}.")
         print(f"Evaluation target model: {model_name}")
-        if (model_name in self.online_model_list) and (
+        print(model_name in self.online_model_list)
+        print(self.online_model_list)
+        if (model_name in self.online_model_list) or (
                 (self.online_model and self.use_replicate) or (self.online_model and self.use_deepinfra)):
             model, tokenizer = (None, None)
         else:

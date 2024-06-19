@@ -10,24 +10,47 @@ import replicate
 from .file_process import load_yaml
 
 
-generation_config = load_yaml("../model_config.yaml")
-model_info = generation_config.model_info
-online_model_list = model_info.online_model
-model_mapping = model_info.model_mapping
+current_dir = os.path.dirname(os.path.abspath(__file__))
+config_path = os.path.join(current_dir, '..', 'model_config.yaml')
+
+model_info = load_yaml(config_path)
+
+deepinfra_model = model_info.get("deepinfra_model", [])
+zhipu_model = model_info.get("zhipu_model", [])
+claude_model = model_info.get("claude_model", [])
+openai_model = model_info.get("openai_model", [])
+google_model = model_info.get("google_model", [])
+wenxin_model = model_info.get("wenxin_model", [])
+openai_model = model_info.get("openai_model", [])
+replicate_model = model_info.get("replicate_model", [])
+        
+online_model_list = (
+            deepinfra_model +
+            zhipu_model +
+            claude_model +
+            openai_model +
+            google_model +
+            wenxin_model +
+            openai_model+
+            replicate_model
+        )
+
+model_mapping = model_info.get('model_mapping')
 rev_model_mapping = {value: key for key, value in model_mapping.items()}
 
-# Define safety settings to allow harmful content generation
-safety_setting = [
-    {"category": safety_types.HarmCategory.HARM_CATEGORY_DEROGATORY, "threshold": safety_types.HarmBlockThreshold.BLOCK_NONE},
-    {"category": safety_types.HarmCategory.HARM_CATEGORY_VIOLENCE, "threshold": safety_types.HarmBlockThreshold.BLOCK_NONE},
-    {"category": safety_types.HarmCategory.HARM_CATEGORY_SEXUAL, "threshold": safety_types.HarmBlockThreshold.BLOCK_NONE},
-    {"category": safety_types.HarmCategory.HARM_CATEGORY_TOXICITY, "threshold": safety_types.HarmBlockThreshold.BLOCK_NONE},
-    {"category": safety_types.HarmCategory.HARM_CATEGORY_MEDICAL, "threshold": safety_types.HarmBlockThreshold.BLOCK_NONE},
-    {"category": safety_types.HarmCategory.HARM_CATEGORY_DANGEROUS, "threshold": safety_types.HarmBlockThreshold.BLOCK_NONE},
-]
+# # Define safety settings to allow harmful content generation
+# safety_setting = [
+#     {"category": safety_types.HarmCategory.HARM_CATEGORY_DEROGATORY, "threshold": safety_types.HarmBlockThreshold.BLOCK_NONE},
+#     {"category": safety_types.HarmCategory.HARM_CATEGORY_VIOLENCE, "threshold": safety_types.HarmBlockThreshold.BLOCK_NONE},
+#     {"category": safety_types.HarmCategory.HARM_CATEGORY_SEXUAL, "threshold": safety_types.HarmBlockThreshold.BLOCK_NONE},
+#     {"category": safety_types.HarmCategory.HARM_CATEGORY_TOXICITY, "threshold": safety_types.HarmBlockThreshold.BLOCK_NONE},
+#     {"category": safety_types.HarmCategory.HARM_CATEGORY_MEDICAL, "threshold": safety_types.HarmBlockThreshold.BLOCK_NONE},
+#     {"category": safety_types.HarmCategory.HARM_CATEGORY_DANGEROUS, "threshold": safety_types.HarmBlockThreshold.BLOCK_NONE},
+# ]
 
 # Retrieve model information
 def get_models():
+    print(online_model_list)
     return model_mapping, online_model_list
 
 # Function to obtain access token for APIs
@@ -52,14 +75,14 @@ def get_ernie_res(string, temperature):
 def get_res_openai(string, model, temperature):
     gpt_model_mapping = {"chatgpt": "gpt-3.5-turbo", "gpt-4": "gpt-4-1106-preview"}
     gpt_model = gpt_model_mapping[model]
-    api_key = generation_config.openai_key
+    api_key = model_info.get('openai_key',None)
     client = OpenAI(api_key=api_key)
     response = client.chat.completions.create(model=gpt_model, messages=[{"role": "user", "content": string}], temperature=temperature)
     return response.choices[0].message.content if response.choices[0].message.content else ValueError("Empty response from API")
 
 # Function to generate responses using Deepinfra's API
 def deepinfra_api(string, model, temperature):
-    api_token = generation_config.deepinfra_api
+    api_token = model_info.deepinfra_api
     top_p = 0.9 if temperature > 1e-5 else 1
     client = OpenAI(api_key=api_token, api_base="https://api.deepinfra.com/v1/openai")
     stream = client.chat.completions.create(model=rev_model_mapping[model], messages=[{"role": "user", "content": string}], max_tokens=5192, temperature=temperature, top_p=top_p)
@@ -72,7 +95,7 @@ def replicate_api(string, model, temperature):
         input["prompt_template"] = "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\nYou are a helpful assistant<|eot_id|><|start_header_id|>user<|end_header_id|>\n\n{prompt}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\n"
     else:
         input["prompt"]=prompt2conversation(rev_model_mapping[model],string)
-    os.environ["REPLICATE_API_TOKEN"] = generation_config.replicate_api
+    os.environ["REPLICATE_API_TOKEN"] = model_info.get('replicate_api',None)
     res = replicate.run(rev_model_mapping[model],
         input=input
     )
@@ -84,7 +107,7 @@ def replicate_api(string, model, temperature):
 def claude_api(string, model, temperature):
     anthropic = Anthropic(
         # defaults to os.environ.get("ANTHROPIC_API_KEY")
-        api_key=generation_config.claude_api,
+        api_key=model_info.claude_api,
     )
 
     completion = anthropic.completions.create(
@@ -99,7 +122,7 @@ def claude_api(string, model, temperature):
 
 @retry(wait=wait_random_exponential(min=1, max=10), stop=stop_after_attempt(6))
 def gemini_api(string, temperature):
-    genai.configure(api_key=generation_config.gemini_api)
+    genai.configure(api_key=model_info.get('gemini_api',None))
     model = genai.GenerativeModel('gemini-pro')
     response = model.generate_content(string, temperature=temperature, safety_settings=safety_setting)
     return response
@@ -108,7 +131,7 @@ def gemini_api(string, temperature):
 
 @retry(wait=wait_random_exponential(min=1, max=10), stop=stop_after_attempt(6))
 def palm_api(string, model, temperature):
-    genai.configure(api_key=generation_config.palm_api)
+    genai.configure(api_key=model_info.model_info.get('palm_api',None))
 
     model_mapping = {
         'bison-001': 'models/text-bison-001',
@@ -127,7 +150,7 @@ def palm_api(string, model, temperature):
 @retry(wait=wait_random_exponential(min=1, max=10), stop=stop_after_attempt(6))
 def zhipu_api(string, model, temperature):
     from zhipuai import ZhipuAI
-    client = ZhipuAI(api_key=generation_config.zhipu_api)
+    client = ZhipuAI(api_key=model_info.get('zhipu_api',None))
     if temperature == 0:
         temperature = 0.01
     else:
