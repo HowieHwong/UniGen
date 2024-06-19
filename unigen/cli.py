@@ -1,6 +1,7 @@
 import sys
 from enum import Enum, unique
-from utils.file_process import *
+from pprint import pprint
+from .utils.file_process import *
 
 
 USAGE = ("-" * 70
@@ -24,9 +25,10 @@ class Command(str, Enum):
 
 
 def generation(config):
-    import unigen
-    unigen.unigen_generation(config)
-    print("Starting generation process with config:", config)
+    from .generation import unigen_generation
+    print(f"Starting generation process with config: {config}")
+    unigen_generation(config)
+
 
 
 def analysis(config):
@@ -34,8 +36,8 @@ def analysis(config):
 
 def evaluation(config):
     print("Starting model_evaluation process with config:", config)
-    import generation
-    Generator = generation.LLMGeneration(config)
+    import unigen.inference as inference
+    Generator = inference.LLMGeneration(config)
     Generator.generation_results()
     
 def judge(config):

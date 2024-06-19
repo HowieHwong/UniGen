@@ -1,6 +1,6 @@
 import json,re
 from .LLM_model import ModelAPI
-from utils.IO import print,input
+from .IO import print,input
 from tenacity import retry, wait_random_exponential, stop_after_attempt
 from .prompt import prompt_template
 
@@ -23,9 +23,9 @@ def get_res_data(prompt):
         print(e)
 
 @retry(wait=wait_random_exponential(min=2, max=8), stop=stop_after_attempt(8))
-def get_res_str(prompt):
-    LLM_model=ModelAPI()
-    response = LLM_model.get_res(prompt,)
+def get_res_str(prompt,):
+    model=ModelAPI()
+    response = model.get_res(prompt,)
     return response
     
 
@@ -71,7 +71,7 @@ def clean_json_string(json_string):
 
 
 
-def create_data_entries(with_label, num_elements, attribute_key=None, extra_info_keys=None, prompt_template=None):
+def create_data_entries(with_label, num_elements=1, attribute_key=None, extra_info_keys=None, prompt_template=None):
     data_entries = []
     for index in range(num_elements):
         entry = {'id': index, 'text': ''}
@@ -129,7 +129,7 @@ def replace_escaped_underscores(string: str):
         "inner\_thoughts": "User is asking for information about themselves. Retrieving data from core memory.",
         "message": "I know that you are Chad. Is there something specific you would like to know or talk about regarding yourself?"
     """
-    return string.replace("\_", "_")
+    return string.replace('''\_''', "_")
 
 
 def extract_first_json(string: str):
@@ -295,10 +295,11 @@ def clean_json(raw_llm_output, messages=None, functions=None):
 
     for strategy in strategies:
         try:
-            print(f"Trying strategy: {strategy.__name__}")
+            # print(f"Trying strategy: {strategy.__name__}")
             return strategy(raw_llm_output)
         except Exception as e:
-            print(raw_llm_output)
-            print(f"Strategy {strategy.__name__} failed with error: {e}")
+            pass
+            # print(raw_llm_output)
+            # print(f"Strategy {strategy.__name__} failed with error: {e}")
 
     raise Exception(f"Failed to decode valid MemGPT JSON from LLM output:\n=====\n{raw_llm_output}\n=====")

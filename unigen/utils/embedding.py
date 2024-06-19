@@ -12,25 +12,25 @@ class EmbeddingProcessor:
         self.config = config
 
     def preprocess_original_dataset(self,):
-        original_dataset_path=self.config['original_dataset_path']
+        original_dataset_path=self.config['generation_hint']['original_dataset_path']
         base_path = os.path.splitext(original_dataset_path)[0]
         embedding_path = f"{base_path}_dataset_embedding.json"
         if not os.path.exists(embedding_path):
-            data=load_json('original_dataset_path')
+            data=load_json(original_dataset_path)
             embeddings = self.generate_dataset_embedding(data)
             save_json(embeddings, embedding_path)
         else:
             embeddings = load_json(embedding_path)
         return embeddings
             
-    @staticmethod
-    def get_embedding(self,string,):
-        azure = self.config['api_setting']['use_azure']
+    
+    def get_embedding(string, config):
+        settings = config["api_settings"]
+        azure = settings['use_azure']
         if azure:
-            settings = self.config["api_setting"]
             client = AzureOpenAI(
                 azure_endpoint=settings["api_base"],
-                api_key=settings['api_key'],
+                api_key=settings['azure_api_key'],
                 api_version=settings["azure_version"],
             )
             response = client.embeddings.create(
@@ -38,8 +38,7 @@ class EmbeddingProcessor:
                 input=string
             )
         else:
-            settings = self.config['spi_settings']
-            client = OpenAI(api_key=settings['api_key'])
+            client = OpenAI(api_key=settings['openai_api_key'])
             response = client.embeddings.create(
                 model=settings['embedding_model'],
                 input=string
@@ -47,7 +46,7 @@ class EmbeddingProcessor:
         return response.data[0].embedding
 
     def get_single_item_embedding(self, item):
-        item["embedding"] = EmbeddingProcessor.get_embedding(item["text"], self.config)
+        item["embedding"] = EmbeddingProcessor.get_embedding(item["text"],self.config)
         return item
     
     
@@ -75,14 +74,14 @@ class EmbeddingProcessor:
                 available_indices.remove(new_selected)
 
             if len(selected_indices) == n:
-                return [embeddings[idx] for idx in selected_indices]
+                return selected_indices
             min_similarity += decrement
 
         raise ValueError("Unable to find enough embeddings with any minimum similarity threshold.")
 
 
 
-    def cluster_embeddings(self, data, embeddings, num_clusters, method='cosine_similarity'):
+    def cluster_embeddings(self, embeddings, num_clusters, method='cosine_similarity'):
         embeddings_array = np.array([el['embedding'] for el in embeddings])
         assert method in ['kmeans', 'agglomerative', 'cosine_similarity']
         clustering_model = None
@@ -92,7 +91,8 @@ class EmbeddingProcessor:
             clustering_model = AgglomerativeClustering(n_clusters=num_clusters)
         elif method == 'cosine_similarity':
             selected_indices = self.select_embeddings_with_auto_min_similarity(embeddings, num_clusters)
-            return [data[idx] for idx in selected_indices]
+            #print(selected_indices)
+            return [embeddings[idx] for idx in selected_indices]
 
         labels = clustering_model.fit_predict(embeddings_array)
         cluster_embeddings = {cluster_label: [] for cluster_label in np.unique(labels)}

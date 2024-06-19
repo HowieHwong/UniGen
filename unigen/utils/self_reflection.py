@@ -50,7 +50,7 @@ def reflection_improve_example(example, dataset_description, few_shot_des, const
                                constraint=constraint,
                                few_shot_examples=few_shot, )
         with_label = "label" in example.keys()
-        data_format_str = data_format.data_entry_format(with_label=with_label, el_num=1)
+        data_format_str = data_format.create_data_entries(with_label=with_label,)
         prompt += data_format_str
 
         improved_example = data_format.get_res_data(prompt)
