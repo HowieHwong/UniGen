@@ -1,5 +1,5 @@
 
-openai_key: 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
+openai_key: 
 
 deepinfra_model:
   - llama2-70b
