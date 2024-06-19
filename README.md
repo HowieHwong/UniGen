@@ -4,10 +4,12 @@
 
 
 # UniGen: A Unified Framework for Textual Dataset Generation
+
+<div align="center">
+
 [![Paper](https://img.shields.io/badge/Paper-%F0%9F%8E%93-lightgrey?style=flat-square)](https://arxiv.org/)  [![Website](https://img.shields.io/badge/Website-%F0%9F%90%BE-green?style=flat-square)](https://unigen-framework.github.io/)
 
-![UniGen Architecture](https://github.com/HowieHwong/UniGen/blob/main/images/architecture.png "UniGen Framework Architecture")
-
+</div>
 
 ## :gem: What's UniGen?
 
@@ -16,6 +18,7 @@ Despite this, challenges remain in the areas of generalization, controllability,
 
 <span style="color: red;">TL;DR: UniGen is an LLM-powered framework designed to generate diverse, accurate, and highly controllable text datasets.</span>
 
+![UniGen Architecture](https://github.com/HowieHwong/UniGen/blob/main/images/architecture.png "UniGen Framework Architecture")
 
 
 ## :dart: Features
