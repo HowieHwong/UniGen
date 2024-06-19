@@ -4,16 +4,18 @@
 
 
 # UniGen: A Unified Framework for Textual Dataset Generation
-[![Paper](https://img.shields.io/badge/Paper-%F0%9F%8E%93-lightgrey?style=flat-square)](https://arxiv.org/)  [![Website](https://img.shields.io/badge/Website-%F0%9F%90%BE-green?style=flat-square)](https://unigen-framework.github.io/unigen-framework/)
+[![Paper](https://img.shields.io/badge/Paper-%F0%9F%8E%93-lightgrey?style=flat-square)](https://arxiv.org/)  [![Website](https://img.shields.io/badge/Website-%F0%9F%90%BE-green?style=flat-square)](https://unigen-framework.github.io/)
 
 <img src="https://img.shields.io/github/last-commit/HowieHwong/UniGen?style=flat-square&color=5D6D7E" alt="git-last-commit" /> <img src="https://img.shields.io/github/commit-activity/m/HowieHwong/UniGen?style=flat-square&color=5D6D7E" alt="GitHub commit activity" /> <img src="https://img.shields.io/github/languages/top/HowieHwong/UniGen?style=flat-square&color=5D6D7E" alt="GitHub top language" />
 
-
-## :fire: News
-
 ## :gem: What's UniGen?
 
-UniGen is an LLM-powered framework designed to generate diverse, accurate, and highly controllable text datasets.
+Large Language Models (LLMs) such as GPT-4 and Llama3 have significantly impacted various fields by enabling high-quality synthetic data generation and reducing dependence on expensive human-generated datasets. 
+Despite this, challenges remain in the areas of generalization, controllability, diversity, and truthfulness within the existing generative frameworks. To address these challenges, this paper presents UniGen, a comprehensive LLM-powered framework designed to produce diverse, accurate, and highly controllable datasets. UniGen is adaptable, supporting all types of text datasets and enhancing the generative process through innovative mechanisms. To augment data diversity, UniGen incorporates an attribute-guided generation module and a group checking feature. For accuracy, it employs a code-based mathematical assessment for label verification alongside a \textit{retrieval-augmented generation} technique for factual validation. The framework also allows for user-specified constraints, enabling customization of the data generation process to suit particular requirements. 
+
+<span style="color: red;">TL;DR: UniGen is an LLM-powered framework designed to generate diverse, accurate, and highly controllable text datasets.</span>
+
+
 
 ## :dart: Features
 
