@@ -1,0 +1,149 @@
+[
+    {
+        "id": 0,
+        "text": "A group of students are planning a field trip and charter a bus that costs $480. If each student contributes equally and 6 more students decide to join, lowering the individual cost by $5, how many students are going on the trip?",
+        "label": "24",
+        "number": 1,
+        "isgood": true
+    },
+    {
+        "id": 1,
+        "text": "Liam is making gift bags for a party. He has 150 pieces of candy. He wants to make sure each bag has an equal amount of candy. If he distributes 5 pieces of candy into each bag initially and then adds 3 more pieces to each bag, with no candy left over, how many bags did he prepare?",
+        "label": "25",
+        "number": 2,
+        "isgood": true
+    },
+    {
+        "id": 2,
+        "text": "Samantha is saving for a new bicycle by doing chores for her neighbors. She earns $4 for every chore completed and has earned $72 so far. She plans to do 1 chore each week and continue earning at the same rate for 4 more weeks. If the bicycle costs $200, how much more money does she need to save after the next 4 weeks, assuming she saves all the money she earns?",
+        "label": "$112",
+        "number": 3,
+        "isgood": true
+    },
+    {
+        "id": 4,
+        "text": "A librarian is categorizing books into different sections. She has 168 history books and wants to create shelves with an equal number of books on each shelf. If she plans to have a number of shelves such that each shelf can hold 8 more books than the total number of shelves she will use for the history books, how many shelves will she use?",
+        "label": "12",
+        "number": 5,
+        "isgood": true
+    },
+    {
+        "id": 1,
+        "text": "A school's sports team is organizing a fundraiser. They sell chocolate bars for $2 each and granola bars for $1.50 each. In one day, they manage to sell twice as many chocolate bars as granola bars and make a total of $120. How many granola bars did they sell?",
+        "label": "30",
+        "number": 2,
+        "isgood": true
+    },
+    {
+        "id": 2,
+        "text": "Lola is saving money for a bicycle by doing chores. Each week she saves $15. After saving for 4 weeks, she finds a bicycle that costs $200 but is on a 20% discount. How much more money does Lola need to save to buy the bicycle?",
+        "label": "100",
+        "number": 3,
+        "isgood": true
+    },
+    {
+        "id": 4,
+        "text": "A gardener is planning to plant trees in two rows in a park. If there are a total of 18 trees and the second row has 4 more trees than the first row, how many trees will be in each row?",
+        "label": "7 and 11",
+        "number": 5,
+        "isgood": true
+    },
+    {
+        "id": 0,
+        "text": "A gardener is planting two types of trees in a park: maples and oaks. The gardener has 8 maples and each maple requires a surrounding circular space with a radius of 3 meters clear of any other plants. An oak requires a circular space with a radius that is 2 meters more than that required for a maple. If the gardener plants 5 oaks, how many square meters of park area must be reserved for these trees?",
+        "label": "619",
+        "number": 1,
+        "isgood": true
+    },
+    {
+        "id": 1,
+        "text": "Layla is preparing her handmade jewelry for an upcoming craft fair. She focuses on creating colorful bracelets and necklaces. Each bracelet requires 15 beads and each necklace requires twice as many beads as a bracelet. Layla has already crafted 10 bracelets for the fair. After using the beads for the bracelets, Layla has a total of 990 beads available to use for both bracelets and necklaces. If bracelets continue to be made with 15 beads each, how many necklaces can she create with the remaining beads, assuming she uses all the beads and does not start any necklace she can't finish?",
+        "label": "30",
+        "number": 2,
+        "isgood": true
+    },
+    {
+        "id": 2,
+        "text": "In a particular board game, players navigate a grid by rolling a six-sided die each turn and advancing the number of squares indicated. Alice begins her turn on square 17 and completes it on square 46. She rolls the die exactly three times during her turn. To find out the minimum number she could have rolled on any one of her three rolls, consider that the other two rolls were the highest possible. What is the minimum number that could have appeared on the die for one of her rolls?",
+        "label": "4",
+        "number": 3,
+        "isgood": true
+    },
+    {
+        "id": 3,
+        "text": "A rectangular garden has a length that is twice its width. If the perimeter of the garden is 72 meters, what is the length of the diagonal connecting opposite corners of the garden? To find the diagonal, use the Pythagorean theorem where the diagonal (d) is related to the length (l) and width (w) by the equation d^2 = l^2 + w^2. First, find the garden's length and width using the information about the perimeter. Recall that the perimeter (P) of a rectangle is given by the formula P = 2l + 2w. Once you have the length and width, use the Pythagorean theorem to find the diagonal. Give your final answer for the diagonal rounded to two decimal places.",
+        "label": "25.98",
+        "number": 4,
+        "isgood": true
+    },
+    {
+        "id": 4,
+        "text": "A school is ordering computer desks and chairs for a new computer lab. Each desk costs $120 and each chair costs $30. If the total budget for the furniture is $2400 and the number of chairs is four times the number of desks, how many desks can the school purchase?",
+        "label": "8",
+        "number": 5,
+        "isgood": true
+    },
+    {
+        "id": 0,
+        "text": "A rectangular garden measuring 30 feet by 20 feet is to be covered with mulch. A cubic foot of mulch covers an area of 4 square feet. If the mulch is sold in bags that contain 3 cubic feet each, how many bags of mulch are needed to cover the garden?",
+        "label": "50",
+        "number": 1,
+        "isgood": true
+    },
+    {
+        "id": 1,
+        "text": "During a science experiment, a solution must be heated to triple its initial temperature of 37 degrees Celsius to create a chemical reaction. After reaching the required temperature, it must be cooled down by 25 degrees Celsius for storage. What is the final storage temperature of the solution?",
+        "label": "86",
+        "number": 2,
+        "isgood": true
+    },
+    {
+        "id": 2,
+        "text": "In a relay race, the first runner covers a distance of 2.5 kilometers, the second covers double the first, the third covers half the distance of the second, and the fourth covers 1.5 kilometers more than the third. What is the total distance covered by the relay team?",
+        "label": "11",
+        "number": 3,
+        "isgood": true
+    },
+    {
+        "id": 4,
+        "text": "A librarian is categorizing books into 4 genres. She has a total of 120 books. She notes that the number of fantasy books is twice the number of mystery books, the number of romance books is half the number of mystery books, and the number of science fiction books is the sum of the number of fantasy and mystery books. How many books are there in each genre?",
+        "label": "Fantasy: 48, Mystery: 24, Romance: 12, Science Fiction: 72",
+        "number": 5,
+        "isgood": true
+    },
+    {
+        "id": 0,
+        "text": "In a small library, the number of mystery books is triple the number of adventure books. If the library buys 15 new adventure books, the number of mystery books will be twice the total number of adventure books. How many mystery books were there originally?",
+        "label": "45",
+        "number": 1,
+        "isgood": true
+    },
+    {
+        "id": 1,
+        "text": "A rectangular garden has a length that is 4 times its width. If each side of the garden were increased by 10 meters, the area would be 3200 square meters. What is the perimeter of the original garden?",
+        "label": "120",
+        "number": 2,
+        "isgood": true
+    },
+    {
+        "id": 2,
+        "text": "Oliver has twice as many stickers as Sophia, and Sophia has 40 fewer stickers than Ethan. If the three friends have a total of 440 stickers, how many stickers does Oliver have?",
+        "label": "240",
+        "number": 3,
+        "isgood": true
+    },
+    {
+        "id": 3,
+        "text": "A baker is preparing loaves of bread for a large order. Each loaf weighs 250 grams before baking and loses 15% of its weight due to water evaporation during baking. If the final order must weigh at least 30 kilograms, how many loaves does the baker have to prepare before baking?",
+        "label": "142",
+        "number": 4,
+        "isgood": true
+    },
+    {
+        "id": 4,
+        "text": "A cyclist travels from point A to B at an average speed of 15 km/h and returns on the same route at an average speed of 10 km/h. If the total time for the round trip is 5 hours, what is the distance from A to B?",
+        "label": "30",
+        "number": 5,
+        "isgood": true
+    }
+]

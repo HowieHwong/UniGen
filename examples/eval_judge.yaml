@@ -1,0 +1,29 @@
+
+tasks_files:
+  MCQ:
+    - '': 0.0
+
+api_settings:
+  model_type: "gpt"
+  api_key: null
+  embedding_model: "text-embedding-3-large"
+  use_azure: false
+  api_base: null
+  azure_version: null
+
+
+data_path: /Users/admin/Documents/GitHub/UniGen/inference/
+models:
+  - chatgpt
+tasks_files:
+  MCQ : 'combined_dataset_20240619_100140.json'
+key_name: text
+
+
+api_settings:
+  model_type: "gpt"
+  api_key: null
+  embedding_model: "text-embedding-3-large"
+  use_azure: false
+  api_base: null
+  azure_version: null

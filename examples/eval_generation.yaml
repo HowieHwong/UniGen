@@ -1,0 +1,25 @@
+#generation_setting
+
+online_model: True
+use_deepinfra: false
+use_replicate: false
+repetition_penalty: 1.0
+num_gpus: 1
+max_new_tokens: 512
+debug: false
+max_retries: 10
+retry_interval: 3
+
+model_name: 'chatgpt'
+data_path: /Users/admin/Documents/GitHub/UniGen/inference/
+tasks_files:
+  - 'combined_dataset_20240619_100140.json': 0.0
+key_name: text
+
+api_settings:
+  model_type: "gpt"
+  api_key: null
+  embedding_model: "text-embedding-3-large"
+  use_azure: false
+  api_base: null
+  azure_version: null
