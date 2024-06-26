@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://github.com/HowieHwong/UniGen/blob/main/images/unigen_logo.png" alt="logo">
+  <img src="https://github.com/HowieHwong/UniGen/blob/main/images/unigen_logo.png" alt="logo" style="width:40%;">
 </p>
 
 
@@ -9,17 +9,27 @@
 
 <div align="center">
 
-<a href="https://arxiv.org/">
-    <img src="https://img.shields.io/badge/Paper-%F0%9F%8E%93-lightgrey?style=flat-square" alt="Paper" style="height:30px;"/>
-</a>
-<a href="https://unigen-framework.github.io/">
-    <img src="https://img.shields.io/badge/Website-%F0%9F%90%BE-green?style=flat-square" alt="Website" style="height:30px;"/>
-</a>
+<p align="center">
+  <a href="https://arxiv.org/">
+    <img src="https://img.shields.io/badge/Paper-%F0%9F%8E%93-lightgrey?style=flat-square" alt="Paper" style="height:20px;"/>
+  </a>
+  <a href="https://unigen-framework.github.io/">
+    <img src="https://img.shields.io/badge/Website-%F0%9F%90%BE-green?style=flat-square" alt="Website" style="height:20px;"/>
+  </a>
+  <a href="https://github.com/HowieHwong/UniGen/issues">
+    <img src="https://img.shields.io/badge/Contribution-%F0%9F%91%A4-blue?style=flat-square" alt="Contribution" style="height:20px;"/>
+  </a>
+  <a href="https://github.com/HowieHwong/UniGen">
+    <img src="https://img.shields.io/badge/Toolkit-%F0%9F%92%A1-yellow?style=flat-square" alt="Toolkit" style="height:20px;"/>
+  </a>
+</p>
 
 
 </div>
 
 </div>
+
+## Table of Contents
 
 - [UniGen: A Unified Framework for Textual Dataset Generation](#unigen-a-unified-framework-for-textual-dataset-generation)
   - [What's UniGen?](#gem-whats-unigen)
