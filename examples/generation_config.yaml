@@ -1,10 +1,15 @@
 api_settings:
   embedding_model: "text-embedding-3-large"
   use_azure: True
+  azure_base_url: https://yuehuang-trustllm-3.openai.azure.com/
+  azure_api_key: c33c373d2a2b4757a185f17b90ad80a4
+  azure_model: yuehuang-gpt-4
+  azure_version: 2023-12-01-preview
+
 
 
 generation_settings:
-  model_type: "gpt"
+  model_type: 'gpt'  # Can be 'gpt', 'claude', 'llama3'
   temperature: 0.8
   generation_number: 10
   batch_size: 5

@@ -1,6 +1,6 @@
 from tenacity import retry, wait_random_exponential, stop_after_attempt
 from openai import OpenAI, AzureOpenAI
-# from anthropic import Anthropic
+from anthropic import Anthropic
 import traceback
 
 def singleton(cls):
@@ -26,12 +26,13 @@ class ModelAPI:
     def get_res(self, text, model=None, message=None, azure=True, json_format=False, ):
         temperature = self.temperature
         try:
-            if self.model_type.lower() == 'gpt':
+            if self.model_type == 'gpt':
                 return self.api_send_gpt4(text, model, message, azure, json_format, temperature)
-            elif self.model_type.lower() == 'claude':
-
+            elif self.model_type == 'claude':
+                self.api_key = self.config["api_settings"]["claude_api_key"]
                 return self.api_send_claude(text, model, message, json_format, temperature)
-            elif self.model_type.lower() == 'llama3':
+            elif self.model_type == 'llama3':
+                self.api_key = self.config["api_settings"]["llama3_api_key"]
                 return self.api_send_llama3(text, model, message, json_format, temperature)
             else:
                 raise ValueError(f"Unsupported model type: {self.model_type}")
@@ -103,11 +104,14 @@ class ModelAPI:
             )
         else:
             model = self.config["api_settings"]["openai_chat_model"]
-            base_url = self.config["api_settings"]["base_url"]
+            base_url = self.config["api_settings"].get("base_url")
             api_key = self.config['api_settings']['openai_api_key']
-            client = OpenAI(api_key=self.api_key,
-                            #base_url=base_url,
-                            )
+
+            # Correct the client initialization
+            if base_url:
+                client = OpenAI(api_key=api_key, base_url=base_url)
+            else:
+                client = OpenAI(api_key=api_key)
             model = "gpt-4-0125-preview"
             print(f"Sending API request...{model},temperature:{temperature}")
             chat_completion = client.chat.completions.create(
