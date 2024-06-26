@@ -33,7 +33,8 @@
 
 Here is a demo video explaining the setup and usage:
 
-<iframe width="560" height="315" src="https://www.youtube.com/embed/kWVC7GGGh2o" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+https://gist.github.com/assets/59754221/dad306ac-a5b2-476f-9484-8304afea312a
+
 
 ## Table of Contents
 
