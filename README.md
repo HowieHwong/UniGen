@@ -32,9 +32,11 @@
 ## Demo Video
 
 Here is a demo video explaining the setup and usage:
-
+<!-- 
 https://gist.github.com/assets/59754221/dad306ac-a5b2-476f-9484-8304afea312a
+ -->
 
+https://gist.github.com/assets/59754221/20bb9a6e-e580-4b32-97f7-46f35d3c8c6e
 
 ## Table of Contents
 
