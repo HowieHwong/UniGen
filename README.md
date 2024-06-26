@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://github.com/HowieHwong/UniGen/blob/main/images/unigen_logo.png" alt="logo">
+  <img src="https://github.com/HowieHwong/UniGen/blob/main/images/unigen_logo.png" alt="logo" style="width:40%;">
 </p>
 
 
@@ -9,12 +9,21 @@
 
 <div align="center">
 
-<a href="https://arxiv.org/">
-    <img src="https://img.shields.io/badge/Paper-%F0%9F%8E%93-lightgrey?style=flat-square" alt="Paper" style="height:30px;"/>
-</a>
-<a href="https://unigen-framework.github.io/">
-    <img src="https://img.shields.io/badge/Website-%F0%9F%90%BE-green?style=flat-square" alt="Website" style="height:30px;"/>
-</a>
+<p align="center">
+  <a href="https://arxiv.org/">
+    <img src="https://img.shields.io/badge/Paper-%F0%9F%8E%93-lightgrey?style=flat-square" alt="Paper" style="height:20px;"/>
+  </a>
+  <a href="https://unigen-framework.github.io/">
+    <img src="https://img.shields.io/badge/Website-%F0%9F%90%BE-green?style=flat-square" alt="Website" style="height:20px;"/>
+  </a>
+  <a href="https://github.com/HowieHwong/UniGen/issues">
+    <img src="https://img.shields.io/badge/Contribution-%F0%9F%91%A4-blue?style=flat-square" alt="Contribution" style="height:20px;"/>
+  </a>
+  <a href="https://github.com/HowieHwong/UniGen">
+    <img src="https://img.shields.io/badge/Toolkit-%F0%9F%92%A1-yellow?style=flat-square" alt="Toolkit" style="height:20px;"/>
+  </a>
+</p>
+
 
 </div>
 
@@ -27,10 +36,41 @@ Here is a demo video explaining the setup and usage:
 <iframe width="560" height="315" src="https://www.youtube.com/embed/kWVC7GGGh2o" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
 
 
+## Table of Contents
+
+- [UniGen: A Unified Framework for Textual Dataset Generation](#unigen-a-unified-framework-for-textual-dataset-generation)
+  - [Demo Video](#demo-video)
+  - [Table of Contents](#table-of-contents)
+  - [:gem: What's UniGen?](#gem-whats-unigen)
+  - [:dart: Features](#dart-features)
+  - [:closed\_book: Usage](#closed_book-usage)
+    - [Installation](#installation)
+    - [UniGen Dataset Generation](#unigen-dataset-generation)
+      - [Configuration Settings](#configuration-settings)
+        - [API Settings](#api-settings)
+        - [Generation Settings](#generation-settings)
+        - [Generation Hint](#generation-hint)
+        - [Efficiency Configuration](#efficiency-configuration)
+      - [Step-by-Step Guide](#step-by-step-guide)
+        - [1. Set Up API Key](#1-set-up-api-key)
+        - [2. Prepare the Original Dataset](#2-prepare-the-original-dataset)
+        - [3. Configure the Generation Settings](#3-configure-the-generation-settings)
+        - [4. Define Generation Hints](#4-define-generation-hints)
+        - [5. Efficiency Configuration](#5-efficiency-configuration)
+        - [6. Run Data Generation](#6-run-data-generation)
+    - [LLM Evaluation](#llm-evaluation)
+      - [1. Generate Output](#1-generate-output)
+      - [2. Evaluate the Output](#2-evaluate-the-output)
+    - [UniGen Augmentation Using LLaMA-Factory](#unigen-augmentation-using-llama-factory)
+      - [Requirements](#requirements)
+      - [Fine-Tuning](#fine-tuning)
+- [Cite UniGen](#cite-unigen)
+
+
 ## :gem: What's UniGen?
 
 Large Language Models (LLMs) such as GPT-4 and Llama3 have significantly impacted various fields by enabling high-quality synthetic data generation and reducing dependence on expensive human-generated datasets. 
-Despite this, challenges remain in the areas of generalization, controllability, diversity, and truthfulness within the existing generative frameworks. To address these challenges, this paper presents UniGen, a comprehensive LLM-powered framework designed to produce diverse, accurate, and highly controllable datasets. UniGen is adaptable, supporting all types of text datasets and enhancing the generative process through innovative mechanisms. To augment data diversity, UniGen incorporates an attribute-guided generation module and a group checking feature. For accuracy, it employs a code-based mathematical assessment for label verification alongside a \textit{retrieval-augmented generation} technique for factual validation. The framework also allows for user-specified constraints, enabling customization of the data generation process to suit particular requirements. 
+Despite this, challenges remain in the areas of generalization, controllability, diversity, and truthfulness within the existing generative frameworks. To address these challenges, this paper presents UniGen, a comprehensive LLM-powered framework designed to produce diverse, accurate, and highly controllable datasets. UniGen is adaptable, supporting all types of text datasets and enhancing the generative process through innovative mechanisms. To augment data diversity, UniGen incorporates an attribute-guided generation module and a group checking feature. For accuracy, it employs a code-based mathematical assessment for label verification alongside a retrieval-augmented generation technique for factual validation. The framework also allows for user-specified constraints, enabling customization of the data generation process to suit particular requirements. 
 
 <span style="color: red;">TL;DR: UniGen is an LLM-powered framework designed to generate diverse, accurate, and highly controllable text datasets.</span>
 
@@ -45,10 +85,11 @@ Despite this, challenges remain in the areas of generalization, controllability,
 - Controllability: UniGen accepts user `constraints` to make generation more controllable.
 - Various Application: UniGen can be applied for `dynamic benchmark` or `data augmentation`.
 
-## Table of Contents
-- 📑 [UniGen Dataset Generation](#unigen-dataset-generation)
-- 💡 [LLM Evaluation](#llm-evaluation)
-- ✨ [Data Augmentation Using LLaMA-Factory](#data-augmentation-using-llama-factory)
+
+
+
+
+
 
 ## :closed_book: Usage
 
@@ -204,6 +245,8 @@ Specify the file to be evaluated in the `tasks_files` section of your configurat
 
 ### UniGen Augmentation Using LLaMA-Factory
 
+This section aims to introduce how to use the generated data powered by UniGen to conduct data augmentation on your LLMs.
+
 #### Requirements
 
 - [`LLaMA-Factory`](https://github.com/hiyouga/LLaMA-Factory) installed
@@ -234,3 +277,9 @@ To use LLaMA-Factory, follow these steps:
    ```bash
    llamafactory-cli api model_inference.yaml
    ```
+
+# Cite UniGen
+
+```text
+
+```
