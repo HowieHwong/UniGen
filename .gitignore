@@ -167,4 +167,5 @@ saves/
 cache/
 
 generated_data/
-examples/
+inference/
+saved_evaluations/ 

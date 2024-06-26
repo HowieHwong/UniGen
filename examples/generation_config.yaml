@@ -1,0 +1,39 @@
+api_settings:
+  embedding_model: "text-embedding-3-large"
+  use_azure: True
+  azure_base_url: https://yuehuang-trustllm-3.openai.azure.com/
+  azure_api_key: c33c373d2a2b4757a185f17b90ad80a4
+  azure_model: yuehuang-gpt-4
+  azure_version: 2023-12-01-preview
+
+
+
+generation_settings:
+  model_type: 'gpt'  # Can be 'gpt', 'claude', 'llama3'
+  temperature: 0.8
+  generation_number: 10
+  batch_size: 5
+  few_shot_num: 5
+  random_example: False
+  max_worker: 2
+  label_ratio: null
+  label_constraint: false
+
+generation_hint:
+  dataset_description: "It is a dataset of high quality linguistically diverse grade school math word problems created by human problem writers. These problems take between 2 and 8 steps to solve, and solutions primarily involve performing a sequence of elementary calculations using basic arithmetic operations (+ − ×÷) to reach the final answer. A bright middle school student should be able to solve every problem. It can be used for multi-step mathematical reasoning. Each problem should only have one question and one correct answer."
+  dataset_name: "GSM8K"
+  original_dataset_path: /Users/admin/Documents/GitHub/UniGen/dataset/GSM8K.json
+  save_path: /Users/admin/Documents/GitHub/UniGen/generated_data
+  dataset_constraint: []
+  with_label: true
+  with_attribute: false
+  add_attribute: false
+  extra_info_keys: []
+
+efficiency_configuration:
+  learn_from_mistake: false
+  learn_from_human_feedback: false
+  feedback_iteration: 1
+  self_reflection: true
+  math_eval: false
+  truthfulness_eval: false

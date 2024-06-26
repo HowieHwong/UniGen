@@ -17,11 +17,11 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 class LLMGeneration:
     def __init__(self, config):
-        self.model_name = ""
+        self.config = config
         self.model_path = config.get("model_path", None)
         self.test_type = config.get("test_type", None)
         self.data_path = config.get("data_path", None)
-        self.config = config
+        
         self.online_model = config.get("online_model", None)
         self.repetition_penalty = config.get("repetition_penalty", None)
         self.num_gpus = config.get("num_gpus", None)
@@ -32,7 +32,7 @@ class LLMGeneration:
         self.device = 'cuda' if torch.cuda.is_available() else 'cpu'
         self.use_replicate = config.get("use_replicate", None)
         self.use_deepinfra = config.get("use_deepinfra", None)
-        self.model_name = self.model_mapping.get(self.model_path, "") if self.model_mapping else ""
+        self.model_name = self.model_mapping[self.model_path] if self.model_mapping else ""
         self.max_retries = config.get("max_retries", None)
         self.retry_interval = config.get("retry_interval", None)
         self.key_name=config.get("key_name", 'prompt')
@@ -166,23 +166,24 @@ class LLMGeneration:
             :param file_config: Configuration settings for file processing.
             :param key_name: The key in the dictionary where the prompt is located.
             """
-
+        test_data_dir = os.path.join(base_dir, 'test_data')
         test_res_dir = os.path.join(base_dir, 'test_res', model_name)
         if not os.path.exists(test_res_dir):
             os.makedirs(test_res_dir)
         section = base_dir.split('/')[-1]
+        print(test_res_dir)
+        #os.makedirs(os.path.join('generation_results', model_name, section), exist_ok=True)
 
-        os.makedirs(os.path.join('generation_results', model_name, section), exist_ok=True)
-
-        file_list = os.listdir(base_dir)
+        file_list = os.listdir(test_data_dir)
         file_list = [file for file in file_list if file.endswith('.json')]
         for file in tqdm(file_list, desc="Processing files"):
-            data_path = os.path.join(base_dir, file)
-            save_path = os.path.join('generation_results', model_name, section, file)
+            data_path = os.path.join(base_dir, 'test_data',file)
+            save_path = os.path.join(base_dir, 'test_res',model_name,file) 
             self.process_file(data_path, save_path, model_name, tokenizer, model, file_config, key_name)
 
 
     def run_data(self, model_name, model, tokenizer):
+
         #file_config =  self.config.get('task_files',[])
         file_config=None
         self._run_task(model_name, model, tokenizer, self.data_path, file_config,self.key_name)
@@ -199,6 +200,7 @@ class LLMGeneration:
         print(f"Evaluation target model: {model_name}")
         print(model_name in self.online_model_list)
         print(self.online_model_list)
+        print(model_name)
         if (model_name in self.online_model_list) or (
                 (self.online_model and self.use_replicate) or (self.online_model and self.use_deepinfra)):
             model, tokenizer = (None, None)
@@ -232,6 +234,7 @@ class LLMGeneration:
                     print(f"Test function successful on attempt {attempt + 1}")
                     return state
             except Exception as e:
+                traceback.print_exc()
                 print(f"Test function failed on attempt {attempt + 1}: {e}")
                 print(f"Retrying in {retry_interval} seconds...")
                 time.sleep(retry_interval)

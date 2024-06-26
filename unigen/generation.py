@@ -114,7 +114,7 @@ class UniGen:
         return feedback_string
 
     def _collect_user_feedback(self, example):
-        if DEBUG:
+        if 1:
             feedback = 'good'
             example['feedback'] = feedback
             return

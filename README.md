@@ -66,6 +66,13 @@ Despite this, challenges remain in the areas of generalization, controllability,
 
 ## :closed_book: Usage
 
+### Installation
+```bash
+git clone --depth 1 git@github.com:HowieHwong/UniGen.git
+cd UniGen
+pip install -e .
+```
+
 ### UniGen Dataset Generation
 This guide provides detailed instructions for generating a dataset using the UniGen tool with the specified configuration settings.
 
@@ -179,6 +186,9 @@ Configure efficiency settings to optimize the data generation process. Enable or
 
 Use the configured settings to generate the dataset using the UniGen tool. Ensure all configurations are correctly set before starting the generation process.
 
+```shell
+unigen-cli gene examples/eval_generation.yaml
+```
 
 ### LLM Evaluation
 

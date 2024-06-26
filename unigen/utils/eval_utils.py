@@ -142,6 +142,7 @@ def evaluate_accuracy(filepath, eval_prompt_dict,task):
     new_filepath = os.path.join(dirname, new_filename)
 
     ans_data = load_json(filepath)
+
     if os.path.exists(new_filepath):
         data = load_json(new_filepath)
 
@@ -241,36 +242,10 @@ def evaluate_accuracy(filepath, eval_prompt_dict,task):
 
 
 
-def eval_single(model,task,filename,base_dir,filename_path=None):
+def eval_single(model,task,filename,base_dir):
     try:
-        try:
-            print(not filename_path)
-            if not filename_path:
-                
-                # 构建文件路径
-                directory = os.path.join(base_dir, 'test_res',model,)
-                jsonl_path = os.path.join(directory, f'{filename}.jsonl')
-                json_path = os.path.join(directory, f'{filename}.json')
-                filename_path=os.path.join(directory, f'{filename}')
-                print(filename_path)
-                if os.path.isfile(filename_path):
-                    file_path=os.path.join(directory, f'{filename}')
-                elif os.path.isfile(jsonl_path):
-                    file_path = jsonl_path
-                elif os.path.isfile(json_path):
-                    file_path = json_path
-                else:
-                    raise FileNotFoundError("File not found. Please ensure the file has a '.json' or '.jsonl' extension.")
-            else:
-                file_path=filename_path
-            
-            # 继续处理 file_path ...
-            print(f'File path: {file_path}')
-            
-        except Exception as e:
-            print(f"An error occurred: {e}")
-            
-
+        file_path=os.path.join(base_dir,'test_res',model, filename)
+        print(file_path)
         if os.path.exists(file_path):
             accuracy,total_length=evaluate_accuracy(file_path,eval_prompt_dict,task)
             return (model,task,filename,accuracy,total_length)
@@ -279,66 +254,6 @@ def eval_single(model,task,filename,base_dir,filename_path=None):
         print(e)
         return  (model,task,filename,0.0,0)
     
-
-# def evaluate_models(models, tasks_files,base_dir):
-#     tasks_results = {
-#         task: {model: [] for model in models} for task in tasks_files
-#     }
-    
-#     with futures.ThreadPoolExecutor(max_workers=8) as executor:
-#         # 创建所有评估任务
-#         future_to_params = {}
-#         for task, files in tasks_files.items():
-#             for model in models:
-#                 for file in files:
-#                     future = executor.submit(eval_single, model, task, file,base_dir)
-#                     future_to_params[future] = (model, task, file)
-        
-#         # 收集结果
-#         for future in futures.as_completed(future_to_params):
-#             model, task, file = future_to_params[future]
-#             model,task,filename,accuracy,total_length= future.result()
-#             tasks_results[task][model].append((filename, accuracy,total_length))
-#             #accuracy, total_length = future.result()  # 假设eval_single返回两个值: accuracy 和 total_length
-#             #tasks_results[task][model].append((file, accuracy, total_length))
-#             print(f"Completed evaluation: {model} on {task} with file {file}, Accuracy: {accuracy:.2f}")
-        
-#         # 确保每个任务的结果与原始文件列表顺序一致
-#         for task, models_results in tasks_results.items():
-#             for model, results in models_results.items():
-#                 results.sort(key=lambda x: tasks_files[task].index(x[0]))
-
-#     return tasks_results
-
-
-# import pandas as pd
-
-# def save_csv(tasks_results,file_name):
-#     data=tasks_results
-#     columns = ['Model', 'Filename', 'S', 'C']
-
-#     # 将数据转换为DataFrame格式
-#     rows = []
-#     for category, models in data.items():
-#         for model, results in models.items():
-#             for result in results:
-#                 rows.append([model, result[0], result[1], result[2]])
-
-#     df = pd.DataFrame(rows, columns=columns)
-
-#     # 将数据转换为图片中的格式
-#     df_pivot = df.pivot_table(index='Model', columns='Filename', values=['S', 'C'])
-
-#     # 将多级列索引转换为单级列索引
-#     df_pivot.columns = ['_'.join(col).strip() for col in df_pivot.columns.values]
-
-#     # 重置索引
-#     df_pivot.reset_index(inplace=True)
-
-#     # 保存为CSV文件
-#     df_pivot.to_csv(file_name, index=False)
-
-
 
 
 
@@ -357,7 +272,6 @@ class AutoEvaluator:
             save_dir (str): Directory for saving evaluation results.
         """
         self.save_dir = save_dir
-        self.max_worker = config["generation_settings"]["max_worker"]
         self.max_worker=8
         if not os.path.exists(self.save_dir):
             os.makedirs(self.save_dir)

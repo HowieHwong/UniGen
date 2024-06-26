@@ -1,0 +1,41 @@
+# model
+model_name_or_path: meta-llama/Meta-Llama-3-8B-Instruct
+
+# method
+stage: sft
+do_train: true
+finetuning_type: lora
+lora_target: q_proj,v_proj
+lora_rank: 64
+
+# dataset
+dataset: #your dataset name
+template: llama3
+cutoff_len: 2048
+max_samples: 2000
+val_size: 0.1
+overwrite_cache: true
+preprocessing_num_workers: 32
+
+# output
+output_dir: saves/llama3-8b/
+logging_steps: 10
+save_steps: 50
+plot_loss: true
+overwrite_output_dir: true
+
+
+# train
+per_device_train_batch_size: 4
+gradient_accumulation_steps: 1
+learning_rate: 0.00001
+num_train_epochs: 8.0
+lr_scheduler_type: cosine
+warmup_steps: 0.1
+fp16: true
+
+# eval
+per_device_eval_batch_size: 16
+evaluation_strategy: steps
+eval_steps: 10
+

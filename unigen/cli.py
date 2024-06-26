@@ -42,7 +42,7 @@ def evaluation(config):
     
 def judge(config):
     print("Starting judge_evaluation process with config:", config)
-    import eval
+    import unigen.eval as eval
     judge_results = eval.judge(config)
     print(judge_results)
 
