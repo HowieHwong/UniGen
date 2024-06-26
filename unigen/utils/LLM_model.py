@@ -1,6 +1,6 @@
 from tenacity import retry, wait_random_exponential, stop_after_attempt
 from openai import OpenAI, AzureOpenAI
-from anthropic import Anthropic
+# from anthropic import Anthropic
 import traceback
 
 def singleton(cls):

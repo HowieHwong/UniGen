@@ -20,6 +20,13 @@
 
 </div>
 
+## Demo Video
+
+Here is a demo video explaining the setup and usage:
+
+<iframe width="560" height="315" src="https://www.youtube.com/embed/kWVC7GGGh2o" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+
+
 ## :gem: What's UniGen?
 
 Large Language Models (LLMs) such as GPT-4 and Llama3 have significantly impacted various fields by enabling high-quality synthetic data generation and reducing dependence on expensive human-generated datasets. 

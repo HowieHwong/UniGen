@@ -224,6 +224,11 @@ class UniGen:
                     "config": config,
                     "dataset": generated_dataset
                 }
+                    
+                base_dir = os.path.dirname(generated_data_file_path)
+                if not os.path.exists(base_dir):
+                    os.makedirs(base_dir)
+                    
                 save_json(genset,generated_data_file_path)
                 print(f"Data save path:{generated_data_file_path}\n\n")
                 print("Dataset saved successfully.", color='BLUE', )
