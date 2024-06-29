@@ -3,12 +3,12 @@ from setuptools import setup, find_packages
 setup(
     name='Unigen',
     version='0.1.0',
-    author='Your Name',
-    author_email='your.email@example.com',
+    author='Siyuan Wu & Yue Huang ',
+    author_email='nauyisu022@gmail.com',
     description='A unified framework for textual dataset generation',
     long_description=open('README.md').read(),
     long_description_content_type='text/markdown',
-    url='https://github.com/yourusername/unigen',
+    url='https://unigen-framework.github.io/',
     packages=find_packages(),
     entry_points={
         'console_scripts': [
