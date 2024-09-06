@@ -12,7 +12,7 @@ api_settings:
   azure_version: null
 
 
-data_path: /Users/admin/Documents/GitHub/UniGen/inference/
+data_path: UniGen/inference/
 models:
   - chatgpt
 tasks_files:

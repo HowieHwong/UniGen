@@ -75,7 +75,6 @@ Please return in a structured JSON format:
 
 @retry(stop=stop_after_attempt(5), wait=wait_fixed(2))
 def improve_el(el,description):
-    
     if el['applied_principles'] is not None:
         return el
     
