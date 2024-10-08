@@ -309,7 +309,7 @@ class AutoEvaluator:
             if 'res' in el:
                 el['gpt_eval']=True 
             else:
-                print('no _re@!!!')
+                print('no _res!!!')
 
         def save_progress_callback(future):
             if future.exception() is not None:
