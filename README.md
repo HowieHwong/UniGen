@@ -283,14 +283,10 @@ To use LLaMA-Factory, follow these steps:
 # Cite UniGen
 
 ```text
-@misc{wu2024unigenunifiedframeworktextual,
-      title={UniGen: A Unified Framework for Textual Dataset Generation Using Large Language Models}, 
-      author={Siyuan Wu and Yue Huang and Chujie Gao and Dongping Chen and Qihui Zhang and Yao Wan and Tianyi Zhou and Xiangliang Zhang and Jianfeng Gao and Chaowei Xiao and Lichao Sun},
-      year={2024},
-      eprint={2406.18966},
-      archivePrefix={arXiv},
-      primaryClass={cs.CL},
-      url={https://arxiv.org/abs/2406.18966}, 
+@article{wu2024unigen,
+  title={Unigen: A unified framework for textual dataset generation using large language models},
+  author={Wu, Siyuan and Huang, Yue and Gao, Chujie and Chen, Dongping and Zhang, Qihui and Wan, Yao and Zhou, Tianyi and Zhang, Xiangliang and Gao, Jianfeng and Xiao, Chaowei and others},
+  journal={arXiv preprint arXiv:2406.18966},
+  year={2024}
 }
-
 ```
