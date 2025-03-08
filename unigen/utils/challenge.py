@@ -101,13 +101,11 @@ from tqdm import tqdm
 
 def apply_improvements(data, description):
     with ThreadPoolExecutor(max_workers=8) as executor:
-        # 提交所有任务到线程池
         future_to_el = {executor.submit(improve_el, el, description): el for el in data}
         
-        # 使用tqdm包装as_completed以显示进度条
         for future in tqdm(as_completed(future_to_el), total=len(future_to_el), desc=description):
             try:
-                el = future.result()  # 获取结果会自动更新data列表中对应的元素
+                el = future.result()  
             except Exception as exc:
                 traceback.print_exc()
                 print(f"Element generated an exception: {exc}")
